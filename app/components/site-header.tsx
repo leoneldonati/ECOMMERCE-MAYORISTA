@@ -2,7 +2,8 @@ import { Form, Link } from "react-router";
 import type { PublicUser } from "~/db/types";
 import { CsrfToken } from "./csrf-token";
 
-export function SiteHeader({ user }: { user: PublicUser | null }) {
+export function SiteHeader({ user, cartCount }: { user: PublicUser | null; cartCount: number }) {
+  const canBuy = user !== null && (user.role === "admin" || user.status === "approved");
   return (
     <header className="border-b border-stone-200 bg-white">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
@@ -13,6 +14,11 @@ export function SiteHeader({ user }: { user: PublicUser | null }) {
           <Link to="/productos" className="text-stone-600 hover:text-stone-900">
             Productos
           </Link>
+          {canBuy ? (
+            <Link to="/carrito" className="text-stone-600 hover:text-stone-900">
+              Carrito{cartCount > 0 ? ` (${cartCount})` : ""}
+            </Link>
+          ) : null}
           {user ? (
             <>
               <Link to="/mi-cuenta" className="text-stone-600 hover:text-stone-900">

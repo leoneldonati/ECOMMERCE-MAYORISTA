@@ -68,3 +68,25 @@ no se puede agregar. Ver `app/lib/pricing.ts`.
 
 El pedido guarda snapshots (nombre, unidad, precio) en `order_items`, así no
 cambia aunque el catálogo se modifique.
+
+## Carrito y checkout (Fase 3)
+
+- El carrito es **server-side** (`cart_items` por usuario): el server es la fuente
+  de verdad, los precios/stock se revalidan al crear la orden, no al agregar.
+- Acceso: solo clientes `approved` (o `admin`); los demás van a `/mi-cuenta`.
+  Toda acción muta por `intent` en el action de `/carrito` y exige CSRF.
+- En el detalle de producto, el cliente elige cantidad y ve el precio de la
+  escala aplicable en vivo (calculador puro, `app/lib/orders.ts`).
+- Reglas al crear el pedido (validadas en transacción en
+  `createOrderFromCart`):
+  - Cada línea debe alcanzar el mínimo de su primera escala; si no, la línea no
+    cuenta para el total.
+  - El stock se valida pero **no se descuenta**: el pedido queda `pending` y el
+    admin gestiona el inventario al confirmar (Fase 4).
+  - El total debe cubrir el pedido mínimo (ARS $ 10.000, `MIN_ORDER_CENTS`).
+  - Si algo no valida, el pedido no se crea (nada queda a medias).
+- Al crear, se guardan snapshots y se **vacía el carrito**. El cliente ve los
+  datos de la cuenta para transferir (`PAYMENT_INFO`, placeholder) en el detalle
+  del pedido `pending`.
+- `/pedidos` lista los pedidos del usuario; `/pedidos/:id` solo muestra los del
+  propio usuario (los ajenos responden 404, no filtra datos).

@@ -13,6 +13,7 @@ import type { Route } from "./+types/root";
 import "./app.css";
 
 import { SiteHeader } from "./components/site-header";
+import { countCartItems } from "./db/repos/cart.server";
 import type { PublicUser } from "./db/types";
 import { getCurrentUser } from "./lib/auth.server";
 import { commitCsrfCookie, getCsrfToken } from "./lib/csrf.server";
@@ -43,8 +44,11 @@ export const middleware: Route.MiddlewareFunction[] = [
 
 export async function loader({ request }: Route.LoaderArgs) {
   const [user, csrf] = await Promise.all([getCurrentUser(request), getCsrfToken(request)]);
+  // El contador del mini-carrito va solo para quien puede comprar (aprobados/admin).
+  const canBuy = user !== null && (user.role === "admin" || user.status === "approved");
+  const cartCount = canBuy ? countCartItems(user.id) : 0;
   return data(
-    { user, csrf },
+    { user, csrf, cartCount },
     { headers: { "Set-Cookie": await commitCsrfCookie(request) } },
   );
 }
@@ -68,10 +72,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const rootData = useRouteLoaderData("root") as { user: PublicUser | null } | undefined;
+  const rootData = useRouteLoaderData("root") as
+    | { user: PublicUser | null; cartCount: number }
+    | undefined;
   return (
     <div className="flex min-h-screen flex-col bg-stone-50 text-stone-900">
-      <SiteHeader user={rootData?.user ?? null} />
+      <SiteHeader user={rootData?.user ?? null} cartCount={rootData?.cartCount ?? 0} />
       <main className="flex-1">
         <Outlet />
       </main>

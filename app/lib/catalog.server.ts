@@ -26,6 +26,8 @@ export interface CatalogTier {
 }
 
 export interface CatalogDetail {
+  /** ID de BD: lo usa el form de "agregar al carrito" para el POST. */
+  id: number;
   slug: string;
   name: string;
   description: string | null;
@@ -80,6 +82,7 @@ export function toCatalogDetail(
   canSeePrices: boolean,
 ): CatalogDetail {
   return {
+    id: product.id,
     slug: product.slug,
     name: product.name,
     description: product.description,

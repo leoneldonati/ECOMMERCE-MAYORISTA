@@ -100,6 +100,20 @@ Regla de aplicación (ver `app/lib/pricing.ts`): gana la escala con mayor
 | unit_price_cents | INTEGER | Precio por unidad incluyendo la escala aplicada |
 | subtotal_cents | INTEGER | `unit_price_cents * quantity` |
 
+## `cart_items` (carrito por usuario)
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| id | INTEGER PK | |
+| user_id | INTEGER FK → users (CASCADE) | |
+| product_id | INTEGER FK → products (CASCADE) | |
+| quantity | INTEGER | `> 0` |
+| created_at / updated_at | TEXT | |
+
+`UNIQUE (user_id, product_id)`: un producto solo puede estar una vez en el carrito.
+El carrito es **server-side** (fuente de verdad); los precios/stock se revalidan al
+crear la orden, no al agregar.
+
 ## `_migrations`
 
 | Columna | Tipo |
@@ -118,3 +132,4 @@ las ejecuta en orden dentro de transacciones.
 - `price_tiers`: product_id
 - `orders`: user_id, status
 - `order_items`: order_id
+- `cart_items`: user_id

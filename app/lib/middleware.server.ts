@@ -24,6 +24,19 @@ export async function requireUser({ request, context }: MiddlewareArgs): Promise
   context.set(userContext, user);
 }
 
+/**
+ * Exige un cliente aprobado (o admin) para comprar. Los pendientes/rechazados
+ * van a /mi-cuenta donde ya ven el banner de su estado.
+ */
+export async function requireApproved({ request, context }: MiddlewareArgs): Promise<void> {
+  const user = await getCurrentUser(request);
+  if (!user) throw redirectToLogin(request);
+  if (user.role !== "admin" && user.status !== "approved") {
+    throw redirect("/mi-cuenta");
+  }
+  context.set(userContext, user);
+}
+
 /** Lee el usuario del contexto en loaders/actions de rutas protegidas. */
 export function getContextUser(context: Readonly<RouterContextProvider>): PublicUser {
   const user = context.get(userContext);
