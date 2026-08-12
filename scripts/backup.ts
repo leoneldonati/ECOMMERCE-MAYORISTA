@@ -53,6 +53,9 @@ function run(): void {
   const target = path.join(backupsDir, `app-${timestamp()}.db`);
 
   const db = new DatabaseSync(sourcePath);
+  // Resiliencia ante escrituras concurrentes de la app (WAL): si la app tiene
+  // un bloqueo activo, esperamos hasta 5 s antes de fallar el snapshot.
+  db.exec("PRAGMA busy_timeout = 5000;");
   db.exec(`VACUUM INTO '${target.replaceAll("'", "''")}'`);
   db.close();
 
