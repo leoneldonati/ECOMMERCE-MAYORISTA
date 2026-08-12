@@ -2,6 +2,8 @@ import { Form, Link } from "react-router";
 import type { Route } from "./+types/productos._index";
 
 import { ProductCard } from "~/components/product-card";
+import { EmptyState } from "~/components/ui/empty-state";
+import { TextLink } from "~/components/ui/text-link";
 import { listCategoriesWithActiveCounts } from "~/db/repos/categories.server";
 import { listProducts } from "~/db/repos/products.server";
 import { getCurrentUser } from "~/lib/auth.server";
@@ -17,7 +19,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const [categories, products] = await Promise.all([
     listCategoriesWithActiveCounts(),
-    listProducts({ activeOnly: true, categorySlug: categoria || undefined, search: q || undefined }),
+    listProducts({
+      activeOnly: true,
+      categorySlug: categoria || undefined,
+      search: q || undefined,
+    }),
   ]);
 
   return {
@@ -92,9 +98,10 @@ export default function Catalog({ loaderData }: Route.ComponentProps) {
       </nav>
 
       {items.length === 0 ? (
-        <p className="rounded-md border border-stone-200 bg-white px-4 py-8 text-center text-stone-600">
-          No se encontraron productos con esos filtros.
-        </p>
+        <EmptyState
+          description="No se encontraron productos con esos filtros."
+          action={<TextLink to={href("", "")}>Limpiar filtros</TextLink>}
+        />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (

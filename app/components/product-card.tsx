@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import type { CatalogItem } from "~/lib/catalog.server";
 import { formatARS } from "~/lib/money";
+import { Card } from "./ui/card";
 import { PricesNotice, type PricesNoticeStatus } from "./prices-notice";
 
 export function ProductCard({
@@ -11,7 +12,7 @@ export function ProductCard({
   pricesNotice: PricesNoticeStatus | null;
 }) {
   return (
-    <article className="flex flex-col rounded-lg border border-stone-200 bg-white p-4 transition-shadow hover:shadow-sm">
+    <Card as="article" className="flex flex-col p-4 transition-shadow hover:shadow-sm">
       <h2 className="font-medium">
         <Link to={`/productos/${item.slug}`} className="hover:text-brand-700">
           {item.name}
@@ -36,6 +37,6 @@ export function ProductCard({
           <PricesNotice status={pricesNotice} variant="card" />
         ) : null}
       </div>
-    </article>
+    </Card>
   );
 }

@@ -3,6 +3,7 @@ import type { Route } from "./+types/registro";
 
 import { CsrfToken } from "~/components/csrf-token";
 import { SubmitButton } from "~/components/ui/button";
+import { FormError } from "~/components/ui/form-error";
 import { SelectField, TextField } from "~/components/ui/field";
 import { createLoginCookie, getCurrentUser } from "~/lib/auth.server";
 import { requireCsrf } from "~/lib/csrf.server";
@@ -83,19 +84,10 @@ export default function Register({ actionData }: Route.ComponentProps) {
       <p className="mb-6 text-sm text-stone-600">
         Tu cuenta queda en revisión y la habilita un administrador antes de poder comprar.
       </p>
-      {errors._form ? (
-        <p role="alert" className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-          {errors._form}
-        </p>
-      ) : null}
+      <FormError className="mb-4">{errors._form}</FormError>
       <Form method="post" className="flex flex-col gap-4">
         <CsrfToken />
-        <TextField
-          label="Razón social"
-          name="businessName"
-          required
-          error={errors.businessName}
-        />
+        <TextField label="Razón social" name="businessName" required error={errors.businessName} />
         <TextField
           label="CUIT"
           name="cuit"

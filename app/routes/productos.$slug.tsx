@@ -4,6 +4,8 @@ import type { Route } from "./+types/productos.$slug";
 
 import { CsrfToken } from "~/components/csrf-token";
 import { FetcherSubmitButton } from "~/components/ui/button";
+import { Card } from "~/components/ui/card";
+import { TableShell } from "~/components/ui/table";
 import { PricesNotice } from "~/components/prices-notice";
 import { findProductBySlug } from "~/db/repos/products.server";
 import { getCurrentUser } from "~/lib/auth.server";
@@ -74,30 +76,22 @@ export default function ProductDetail({ loaderData }: Route.ComponentProps) {
       {product.canSeePrices ? (
         <section className="mt-8">
           <h2 className="mb-3 text-lg font-semibold">Escalas de precio</h2>
-          <table className="w-full overflow-hidden rounded-lg border border-stone-200 bg-white text-sm">
-            <thead className="bg-stone-50 text-left text-stone-500">
-              <tr>
-                <th className="px-4 py-2 font-medium">Cantidad</th>
-                <th className="px-4 py-2 font-medium">Precio por {product.unit_label}</th>
+          <TableShell headers={["Cantidad", `Precio por ${product.unit_label}`]}>
+            {product.tiers.map((tier) => (
+              <tr key={tier.min_qty} className="border-t border-stone-100">
+                <td className="px-4 py-2">
+                  Desde {tier.min_qty} {product.unit_label}
+                  {tier.min_qty === 1 ? "" : "s"}
+                </td>
+                <td className="px-4 py-2 font-medium">
+                  {tier.price_cents !== null ? formatARS(tier.price_cents) : "—"}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {product.tiers.map((tier) => (
-                <tr key={tier.min_qty} className="border-t border-stone-100">
-                  <td className="px-4 py-2">
-                    Desde {tier.min_qty} {product.unit_label}
-                    {tier.min_qty === 1 ? "" : "s"}
-                  </td>
-                  <td className="px-4 py-2 font-medium">
-                    {tier.price_cents !== null ? formatARS(tier.price_cents) : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </TableShell>
 
           {canBuy ? (
-            <div className="mt-6 rounded-lg border border-stone-200 bg-white p-4">
+            <Card className="mt-6 p-4">
               <div className="flex items-end gap-4">
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-stone-600">Cantidad</span>
@@ -132,7 +126,11 @@ export default function ProductDetail({ loaderData }: Route.ComponentProps) {
                   <input type="hidden" name="productId" value={product.id} />
                   <input type="hidden" name="quantity" value={quantity} />
                   <CsrfToken />
-                  <FetcherSubmitButton fetcher={fetcher} pendingLabel="Agregando…" disabled={!canSubmit}>
+                  <FetcherSubmitButton
+                    fetcher={fetcher}
+                    pendingLabel="Agregando…"
+                    disabled={!canSubmit}
+                  >
                     Agregar al carrito
                   </FetcherSubmitButton>
                 </fetcher.Form>
@@ -142,14 +140,14 @@ export default function ProductDetail({ loaderData }: Route.ComponentProps) {
                   </span>
                 ) : null}
                 {tooMuch ? (
-                  <span className="text-sm text-red-600">
-                    Supera el stock disponible.
-                  </span>
+                  <span className="text-sm text-red-600">Supera el stock disponible.</span>
                 ) : null}
               </div>
 
-              {feedback ? <p className="mt-3 text-sm font-medium text-emerald-700">{feedback}</p> : null}
-            </div>
+              {feedback ? (
+                <p className="mt-3 text-sm font-medium text-emerald-700">{feedback}</p>
+              ) : null}
+            </Card>
           ) : null}
         </section>
       ) : pricesNotice ? (

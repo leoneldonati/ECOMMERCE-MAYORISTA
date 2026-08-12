@@ -1,4 +1,5 @@
-import { Link } from "react-router";
+import { Alert } from "./ui/alert";
+import { ButtonLink } from "./ui/button";
 
 export type PricesNoticeStatus = "visitor" | "pending" | "rejected";
 
@@ -31,18 +32,10 @@ export function PricesNotice({
           Los precios mayoristas se muestran a clientes con cuenta aprobada.
         </p>
         <div className="flex justify-center gap-3">
-          <Link
-            to="/registro"
-            className="rounded-md bg-brand-700 px-4 py-2 font-medium text-white transition-colors hover:bg-brand-800"
-          >
-            Solicitar cuenta
-          </Link>
-          <Link
-            to="/login"
-            className="rounded-md border border-stone-300 px-4 py-2 font-medium text-stone-700 transition-colors hover:bg-stone-50"
-          >
+          <ButtonLink to="/registro">Solicitar cuenta</ButtonLink>
+          <ButtonLink to="/login" variant="secondary">
             Ingresar
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     );
@@ -54,8 +47,8 @@ export function PricesNotice({
       ? "Cuando un administrador la apruebe vas a poder ver precios y stock."
       : "Si pensás que es un error, comunicate con nosotros para revisar el caso.";
   return (
-    <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+    <Alert tone="warning" padding="md">
       <strong>{title}.</strong> {detail}
-    </div>
+    </Alert>
   );
 }

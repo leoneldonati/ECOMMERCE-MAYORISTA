@@ -3,7 +3,9 @@ import type { Route } from "./+types/login";
 
 import { CsrfToken } from "~/components/csrf-token";
 import { SubmitButton } from "~/components/ui/button";
+import { FormError } from "~/components/ui/form-error";
 import { TextField } from "~/components/ui/field";
+import { TextLink } from "~/components/ui/text-link";
 import { createLoginCookie, getCurrentUser } from "~/lib/auth.server";
 import { requireCsrf } from "~/lib/csrf.server";
 import {
@@ -58,11 +60,7 @@ export async function action({ request }: Route.ActionArgs) {
   const cookie = await createLoginCookie(user.id);
   const next = new URL(request.url).searchParams.get("next");
   const target =
-    user.status === "pending"
-      ? "/mi-cuenta"
-      : next && next.startsWith("/")
-        ? next
-        : "/";
+    user.status === "pending" ? "/mi-cuenta" : next && next.startsWith("/") ? next : "/";
   return redirect(target, { headers: { "Set-Cookie": cookie } });
 }
 
@@ -75,14 +73,8 @@ export default function Login({ actionData }: Route.ComponentProps) {
   return (
     <div className="mx-auto flex max-w-md flex-col px-4 py-16">
       <h1 className="mb-2 text-2xl font-bold">Ingresar</h1>
-      <p className="mb-6 text-sm text-stone-600">
-        Entrá con el email de tu cuenta mayorista.
-      </p>
-      {errors._form ? (
-        <p role="alert" className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-          {errors._form}
-        </p>
-      ) : null}
+      <p className="mb-6 text-sm text-stone-600">Entrá con el email de tu cuenta mayorista.</p>
+      <FormError className="mb-4">{errors._form}</FormError>
       <Form method="post" className="flex flex-col gap-4">
         <CsrfToken />
         <TextField
@@ -104,10 +96,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
         <SubmitButton pendingLabel="Ingresando…">Ingresar</SubmitButton>
       </Form>
       <p className="mt-6 text-sm text-stone-600">
-        ¿No tenés cuenta?{" "}
-        <a href="/registro" className="font-medium text-brand-700 hover:underline">
-          Solicitá tu cuenta mayorista
-        </a>
+        ¿No tenés cuenta? <TextLink to="/registro">Solicitá tu cuenta mayorista</TextLink>
       </p>
     </div>
   );

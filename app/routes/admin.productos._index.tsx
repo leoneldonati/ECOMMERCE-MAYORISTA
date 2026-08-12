@@ -1,10 +1,13 @@
-import { Form, Link, useRouteLoaderData } from "react-router";
-import type { Route } from "./+types/admin.productos._index";
+import { Form, useRouteLoaderData } from "react-router";
 
 import { ConfirmButton } from "~/components/confirm-button";
 import { CsrfToken } from "~/components/csrf-token";
-import { Button } from "~/components/ui/button";
+import { Button, ButtonLink } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
+import { EmptyState } from "~/components/ui/empty-state";
+import { TableShell } from "~/components/ui/table";
+import { TextLink } from "~/components/ui/text-link";
+import { formatARS } from "~/lib/money";
 import type { ProductWithTiers } from "~/db/types";
 
 // Listado de productos del panel. El loader y el action de activar/eliminar
@@ -13,46 +16,24 @@ import type { ProductWithTiers } from "~/db/types";
 
 export default function AdminProducts() {
   const root = useRouteLoaderData("routes/admin.productos") as
-    | { products: ProductWithTiers[] }
-    | undefined;
+    { products: ProductWithTiers[] } | undefined;
   const products = root?.products ?? [];
 
   return (
     <div>
       <div className="mb-5 flex items-center justify-between gap-3">
         <p className="text-sm text-stone-600">{products.length} productos</p>
-        <Link
-          to="/admin/productos/nuevo"
-          className="rounded-md bg-brand-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-800"
-        >
-          Nuevo producto
-        </Link>
+        <ButtonLink to="/admin/productos/nuevo">Nuevo producto</ButtonLink>
       </div>
 
       {products.length === 0 ? (
-        <p className="rounded-lg border border-stone-200 bg-white px-4 py-10 text-center text-stone-600">
-          Todavía no hay productos.
-        </p>
+        <EmptyState description="Todavía no hay productos." />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-stone-50 text-stone-500">
-              <tr>
-                <th className="px-4 py-2 font-medium">Producto</th>
-                <th className="px-4 py-2 font-medium">Categoría</th>
-                <th className="px-4 py-2 font-medium">Stock</th>
-                <th className="px-4 py-2 font-medium">Escalas</th>
-                <th className="px-4 py-2 font-medium">Estado</th>
-                <th className="px-4 py-2 font-medium">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product) => (
-                <ProductRow key={product.id} product={product} />
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <TableShell headers={["Producto", "Categoría", "Stock", "Escalas", "Estado", "Acciones"]}>
+          {products.map((product) => (
+            <ProductRow key={product.id} product={product} />
+          ))}
+        </TableShell>
       )}
     </div>
   );
@@ -64,16 +45,13 @@ function ProductRow({ product }: { product: ProductWithTiers }) {
   return (
     <tr className="border-t border-stone-100 align-top">
       <td className="px-4 py-3">
-        <Link
-          to={`/admin/productos/${product.id}/editar`}
-          className="font-medium text-brand-700 hover:underline"
-        >
-          {product.name}
-        </Link>
+        <TextLink to={`/admin/productos/${product.id}/editar`}>{product.name}</TextLink>
         <p className="text-stone-500">
           {product.slug} · {product.unit_label}
         </p>
-        {product.package_size ? <p className="text-xs text-stone-400">{product.package_size}</p> : null}
+        {product.package_size ? (
+          <p className="text-xs text-stone-400">{product.package_size}</p>
+        ) : null}
       </td>
       <td className="px-4 py-3 text-stone-600">{product.category_name ?? "—"}</td>
       <td className="px-4 py-3">
@@ -84,9 +62,7 @@ function ProductRow({ product }: { product: ProductWithTiers }) {
       <td className="px-4 py-3 text-stone-600">
         {product.tiers.length} {product.tiers.length === 1 ? "escala" : "escalas"}
         {fromPrice !== null ? (
-          <span className="block text-xs text-stone-400">
-            desde ${(fromPrice / 100).toLocaleString("es-AR")}
-          </span>
+          <span className="block text-xs text-stone-400">desde {formatARS(fromPrice)}</span>
         ) : null}
       </td>
       <td className="px-4 py-3">

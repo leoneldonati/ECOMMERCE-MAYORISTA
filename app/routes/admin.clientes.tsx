@@ -1,10 +1,16 @@
-import { data, Form, Link } from "react-router";
+import { Form, Link } from "react-router";
 import type { Route } from "./+types/admin.clientes";
 
 import { ConfirmButton } from "~/components/confirm-button";
 import { CsrfToken } from "~/components/csrf-token";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
+import { EmptyState } from "~/components/ui/empty-state";
+import { FormError } from "~/components/ui/form-error";
+import { TableShell } from "~/components/ui/table";
+import { errorResponse } from "~/lib/action-utils.server";
+import { formatCuit } from "~/lib/cuit";
+import { formatDate } from "~/lib/dates";
 import { findUserById, listUsers, setUserStatus, toPublicUser } from "~/db/repos/users.server";
 import type { PublicUser, UserStatus } from "~/db/types";
 import { requireAdmin } from "~/lib/middleware.server";
@@ -24,18 +30,6 @@ const STATUS_LABEL: Record<UserStatus, string> = {
   approved: "Aprobada",
   rejected: "Rechazada",
 };
-
-function formatCuit(cuit: string): string {
-  return cuit.length === 11 ? `${cuit.slice(0, 2)}-${cuit.slice(2, 10)}-${cuit.slice(10)}` : cuit;
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" });
-}
-
-function errorResponse(message: string, status = 400) {
-  return data({ errors: { _form: message } }, { status });
-}
 
 export async function loader({ request }: Route.LoaderArgs) {
   const estado = new URL(request.url).searchParams.get("estado");
@@ -70,7 +64,9 @@ export async function action({ request }: Route.ActionArgs) {
     setUserStatus(userId, intent === "approve" ? "approved" : "rejected");
     return redirectWithFlash(
       "/admin/clientes",
-      intent === "approve" ? `${user.business_name}: cuenta aprobada.` : `${user.business_name}: cuenta rechazada.`,
+      intent === "approve"
+        ? `${user.business_name}: cuenta aprobada.`
+        : `${user.business_name}: cuenta rechazada.`,
     );
   }
 
@@ -128,35 +124,16 @@ export default function AdminClients({ loaderData, actionData }: Route.Component
         ) : null}
       </div>
 
-      {errors?._form ? (
-        <p role="alert" className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-          {errors._form}
-        </p>
-      ) : null}
+      <FormError className="mb-4">{errors?._form}</FormError>
 
       {users.length === 0 ? (
-        <p className="rounded-lg border border-stone-200 bg-white px-4 py-10 text-center text-stone-600">
-          No hay cuentas para mostrar.
-        </p>
+        <EmptyState description="No hay cuentas para mostrar." />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-stone-50 text-stone-500">
-              <tr>
-                <th className="px-4 py-2 font-medium">Cliente</th>
-                <th className="px-4 py-2 font-medium">Contacto</th>
-                <th className="px-4 py-2 font-medium">Alta</th>
-                <th className="px-4 py-2 font-medium">Estado</th>
-                <th className="px-4 py-2 font-medium">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <ClientsRow key={user.id} user={user} />
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <TableShell headers={["Cliente", "Contacto", "Alta", "Estado", "Acciones"]}>
+          {users.map((user) => (
+            <ClientsRow key={user.id} user={user} />
+          ))}
+        </TableShell>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/admin._index";
 
+import { Card } from "~/components/ui/card";
 import { listProducts } from "~/db/repos/products.server";
 import { listUsers } from "~/db/repos/users.server";
 import { listOrdersWithUser } from "~/db/repos/orders.server";
@@ -62,14 +63,12 @@ export default function AdminOverview({ loaderData }: Route.ComponentProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {cards.map((card) => (
-        <Link
-          key={card.label}
-          to={card.to}
-          className="rounded-lg border border-stone-200 bg-white p-5 transition-colors hover:border-brand-300"
-        >
-          <p className="text-3xl font-bold text-stone-900">{card.value}</p>
-          <p className="mt-1 font-medium text-stone-700">{card.label}</p>
-          <p className="text-sm text-stone-500">{card.hint}</p>
+        <Link key={card.label} to={card.to} className="block">
+          <Card className="p-5 transition-colors hover:border-brand-300">
+            <p className="text-3xl font-bold text-stone-900">{card.value}</p>
+            <p className="mt-1 font-medium text-stone-700">{card.label}</p>
+            <p className="text-sm text-stone-500">{card.hint}</p>
+          </Card>
         </Link>
       ))}
     </div>

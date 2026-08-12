@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { PublicUser } from "~/db/types";
 import { CsrfToken } from "./csrf-token";
 import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
+import { Button, ButtonLink } from "./ui/button";
 
 // Identidad del header: marca con glifo de caja mayorista (mismo trazo que el
 // favicon), NavLink con aria-current automático y menú colapsable en mobile.
@@ -14,7 +14,12 @@ function Logo() {
       <svg viewBox="0 0 24 24" className="h-6 w-6 text-brand-700" aria-hidden="true" fill="none">
         <rect x="3" y="8" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="1.8" />
         <path d="M3 11 L21 11" stroke="currentColor" strokeWidth="1.8" />
-        <path d="M8 8 V6 a2 2 0 0 1 2-2 h4 a2 2 0 0 1 2 2 V8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <path
+          d="M8 8 V6 a2 2 0 0 1 2-2 h4 a2 2 0 0 1 2 2 V8"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
       </svg>
       <span className="text-lg font-bold tracking-tight">
         Despensa<span className="text-brand-700">Online</span>
@@ -25,9 +30,6 @@ function Logo() {
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `transition-colors ${isActive ? "font-medium text-brand-700" : "text-stone-600 hover:text-stone-900"}`;
-
-const primaryLinkClass =
-  "rounded-md bg-brand-700 px-3 py-1.5 font-medium text-white transition-colors hover:bg-brand-800";
 
 export function SiteHeader({ user, cartCount }: { user: PublicUser | null; cartCount: number }) {
   const [open, setOpen] = useState(false);
@@ -71,9 +73,9 @@ export function SiteHeader({ user, cartCount }: { user: PublicUser | null; cartC
           <NavLink to="/login" className={navLinkClass}>
             Ingresar
           </NavLink>
-          <NavLink to="/registro" className={primaryLinkClass}>
+          <ButtonLink to="/registro" size="sm">
             Registrarse
-          </NavLink>
+          </ButtonLink>
         </>
       )}
     </>
@@ -123,7 +125,14 @@ export function SiteHeader({ user, cartCount }: { user: PublicUser | null; cartC
             onClick={() => setOpen((value) => !value)}
             className={`rounded-md p-1.5 transition-colors hover:bg-stone-100 ${open ? "bg-stone-100 text-stone-900" : "text-stone-700"}`}
           >
-            <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <svg
+              viewBox="0 0 24 24"
+              className="h-6 w-6"
+              aria-hidden="true"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            >
               {open ? (
                 <>
                   <path d="M6 6 L18 18" />

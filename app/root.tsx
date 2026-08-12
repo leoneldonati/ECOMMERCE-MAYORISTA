@@ -1,7 +1,6 @@
 import {
   data,
   isRouteErrorResponse,
-  Link,
   Links,
   Meta,
   Outlet,
@@ -15,6 +14,7 @@ import "./app.css";
 
 import { SiteHeader } from "./components/site-header";
 import { SiteFooter } from "./components/site-footer";
+import { ButtonLink } from "./components/ui/button";
 import { ToastProvider, useToast } from "./components/ui/toast";
 import { countCartItems } from "./db/repos/cart.server";
 import type { PublicUser } from "./db/types";
@@ -62,10 +62,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Si había flash, se lee y se borra en el mismo request para mostrarlo una sola vez.
   if (flash) headers.append("Set-Cookie", await clearFlash());
 
-  return data(
-    { user, csrf, cartCount, flash },
-    { headers },
-  );
+  return data({ user, csrf, cartCount, flash }, { headers });
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -89,8 +86,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 function AppContent() {
   const rootData = useRouteLoaderData("root") as
-    | { user: PublicUser | null; cartCount: number; flash?: string | undefined }
-    | undefined;
+    { user: PublicUser | null; cartCount: number; flash?: string | undefined } | undefined;
   const { toast } = useToast();
 
   useEffect(() => {
@@ -145,12 +141,9 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       </p>
       <h1 className="text-3xl font-bold">{message}</h1>
       <p className="mt-2 max-w-md text-stone-600">{details}</p>
-      <Link
-        to="/"
-        className="mt-6 rounded-md bg-brand-700 px-5 py-2.5 font-medium text-white transition-colors hover:bg-brand-800"
-      >
+      <ButtonLink to="/" size="lg" className="mt-6">
         Volver al inicio
-      </Link>
+      </ButtonLink>
       {stack && (
         <pre className="mt-8 w-full max-w-2xl overflow-x-auto rounded-lg bg-stone-900 p-4 text-left text-xs text-stone-100">
           <code>{stack}</code>

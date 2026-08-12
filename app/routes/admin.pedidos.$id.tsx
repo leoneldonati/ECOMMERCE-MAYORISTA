@@ -4,7 +4,13 @@ import type { Route } from "./+types/admin.pedidos.$id";
 import { ConfirmButton } from "~/components/confirm-button";
 import { CsrfToken } from "~/components/csrf-token";
 import { Button } from "~/components/ui/button";
-import { Badge, type BadgeTone } from "~/components/ui/badge";
+import { Badge } from "~/components/ui/badge";
+import { Alert } from "~/components/ui/alert";
+import { Card } from "~/components/ui/card";
+import { FormError } from "~/components/ui/form-error";
+import { errorResponse } from "~/lib/action-utils.server";
+import { formatCuit } from "~/lib/cuit";
+import { formatDateTime } from "~/lib/dates";
 import { findOrderWithItems, transitionOrderStatus, OrderError } from "~/db/repos/orders.server";
 import { findUserById, toPublicUser } from "~/db/repos/users.server";
 import type { OrderStatus } from "~/db/types";
@@ -12,42 +18,9 @@ import { requireAdmin } from "~/lib/middleware.server";
 import { requireCsrf } from "~/lib/csrf.server";
 import { redirectWithFlash } from "~/lib/flash.server";
 import { formatARS } from "~/lib/money";
+import { ORDER_STATUS_BADGES, ORDER_TRANSITION_FLASH, type TransitionStatus } from "~/lib/order-ui";
 
 export const middleware: Route.MiddlewareFunction[] = [requireAdmin];
-
-const STATUS_TONE: Record<OrderStatus, BadgeTone> = {
-  pending: "warning",
-  confirmed: "info",
-  paid: "success",
-  shipped: "info",
-  cancelled: "neutral",
-};
-
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: "Pendiente",
-  confirmed: "Confirmado",
-  paid: "Pagado",
-  shipped: "Enviado",
-  cancelled: "Cancelado",
-};
-
-function formatCuit(cuit: string): string {
-  return cuit.length === 11 ? `${cuit.slice(0, 2)}-${cuit.slice(2, 10)}-${cuit.slice(10)}` : cuit;
-}
-
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("es-AR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function errorResponse(message: string, status = 400) {
-  return data({ errors: { _form: message } }, { status });
-}
 
 export async function loader({ params }: Route.LoaderArgs) {
   const orderId = Number(params.id);
@@ -95,13 +68,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       if (error instanceof OrderError) return errorResponse(error.message, 400);
       throw error;
     }
-    const flash: Record<string, string> = {
-      confirmed: "Pedido confirmado y stock descontado.",
-      paid: "Pedido marcado como pagado.",
-      shipped: "Pedido marcado como enviado.",
-      cancelled: "Pedido cancelado.",
-    };
-    flashMessage = flash[target];
+    flashMessage = ORDER_TRANSITION_FLASH[target as TransitionStatus];
   }
 
   return redirectWithFlash(`/admin/pedidos/${orderId}`, flashMessage);
@@ -110,7 +77,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 export default function AdminOrderDetail({ loaderData, actionData }: Route.ComponentProps) {
   const { order, user } = loaderData;
   const errors = (actionData as { errors?: Record<string, string> } | undefined)?.errors;
-  const status = STATUS_LABEL[order.status];
+  const status = ORDER_STATUS_BADGES[order.status];
 
   return (
     <div>
@@ -124,19 +91,17 @@ export default function AdminOrderDetail({ loaderData, actionData }: Route.Compo
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">Pedido #{order.id}</h1>
-        <Badge tone={STATUS_TONE[order.status]}>{status}</Badge>
+        <Badge tone={status.tone}>{status.label}</Badge>
       </div>
       <p className="mb-6 text-sm text-stone-500">{formatDateTime(order.created_at)}</p>
 
-      {errors?._form ? (
-        <p role="alert" className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-          {errors._form}
-        </p>
-      ) : null}
+      <FormError className="mb-4">{errors?._form}</FormError>
 
       {order.payment_notified_at ? (
-        <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm">
-          <h2 className="mb-1 text-base font-semibold text-emerald-900">El cliente declaró el pago</h2>
+        <Alert tone="success" padding="lg" className="mb-6">
+          <h2 className="mb-1 text-base font-semibold text-emerald-900">
+            El cliente declaró el pago
+          </h2>
           <p className="text-emerald-800">
             Declaró haber transferido/depositado {formatARS(order.total_cents)} el{" "}
             {formatDateTime(order.payment_notified_at)}.
@@ -153,15 +118,12 @@ export default function AdminOrderDetail({ loaderData, actionData }: Route.Compo
               </div>
             ) : null}
           </dl>
-        </div>
+        </Alert>
       ) : null}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Datos del cliente */}
-        <section className="rounded-lg border border-stone-200 bg-white p-5">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
-            Cliente
-          </h2>
+        <Card title="Cliente" className="p-5">
           <dl className="grid gap-2 text-sm">
             <div className="flex justify-between gap-4">
               <dt className="text-stone-500">Razón social</dt>
@@ -194,16 +156,13 @@ export default function AdminOrderDetail({ loaderData, actionData }: Route.Compo
               <p className="mt-1">{order.notes}</p>
             </div>
           ) : null}
-        </section>
+        </Card>
 
         {/* Ítems del pedido */}
-        <section className="rounded-lg border border-stone-200 bg-white">
-          <h2 className="px-5 pt-4 text-sm font-semibold uppercase tracking-wide text-stone-500">
-            Ítems
-          </h2>
-          <ul className="divide-y divide-stone-100 p-2">
+        <Card title="Ítems" className="p-5">
+          <ul className="divide-y divide-stone-100">
             {order.items.map((item) => (
-              <li key={item.id} className="flex items-center justify-between gap-4 p-3">
+              <li key={item.id} className="flex items-center justify-between gap-4 py-3">
                 <div>
                   <p className="font-medium">{item.product_name}</p>
                   <p className="text-sm text-stone-500">
@@ -215,50 +174,58 @@ export default function AdminOrderDetail({ loaderData, actionData }: Route.Compo
               </li>
             ))}
           </ul>
-          <div className="flex items-center justify-between border-t border-stone-100 p-4">
+          <div className="flex items-center justify-between border-t border-stone-100 pt-4">
             <span className="text-stone-600">Total</span>
             <span className="text-xl font-bold">{formatARS(order.total_cents)}</span>
           </div>
-        </section>
+        </Card>
       </div>
 
-      {(order.status === "pending" || order.status === "confirmed" || order.status === "paid") ? (
-        <Form method="post" className="mt-6 flex flex-wrap items-center gap-3 rounded-lg border border-stone-200 bg-white p-4">
-          <CsrfToken />
-{order.status === "pending" ? (
-            <>
-              {order.payment_notified_at ? (
-                <Button type="submit" name="intent" value="paid">
-                  Confirmar y marcar pagado
+      {order.status === "pending" || order.status === "confirmed" || order.status === "paid" ? (
+        <Card className="mt-6 p-4">
+          <Form method="post" className="flex flex-wrap items-center gap-3">
+            <CsrfToken />
+            {order.status === "pending" ? (
+              <>
+                {order.payment_notified_at ? (
+                  <Button type="submit" name="intent" value="paid">
+                    Confirmar y marcar pagado
+                  </Button>
+                ) : null}
+                <Button type="submit" name="intent" value="confirmed" variant="secondary">
+                  Confirmar pedido
                 </Button>
-              ) : null}
-              <Button type="submit" name="intent" value="confirmed" variant="secondary">
-                Confirmar pedido
+                <ConfirmButton
+                  type="submit"
+                  name="intent"
+                  value="cancelled"
+                  confirmLabel="¿Cancelar?"
+                  variant="danger"
+                >
+                  Cancelar pedido
+                </ConfirmButton>
+                <p className="text-sm text-stone-500">
+                  Al confirmar se descuenta el stock de cada ítem.
+                </p>
+              </>
+            ) : null}
+            {order.status === "confirmed" ? (
+              <Button type="submit" name="intent" value="paid">
+                Marcar como pagado
               </Button>
-              <ConfirmButton type="submit" name="intent" value="cancelled" confirmLabel="¿Cancelar?" variant="danger">
-                Cancelar pedido
-              </ConfirmButton>
+            ) : null}
+            {order.status === "paid" ? (
+              <Button type="submit" name="intent" value="shipped">
+                Enviar pedido
+              </Button>
+            ) : null}
+            {order.status === "pending" ? (
               <p className="text-sm text-stone-500">
                 Al confirmar se descuenta el stock de cada ítem.
               </p>
-            </>
-          ) : null}
-          {order.status === "confirmed" ? (
-            <Button type="submit" name="intent" value="paid">
-              Marcar como pagado
-            </Button>
-          ) : null}
-          {order.status === "paid" ? (
-            <Button type="submit" name="intent" value="shipped">
-              Enviar pedido
-            </Button>
-          ) : null}
-          {order.status === "pending" ? (
-            <p className="text-sm text-stone-500">
-              Al confirmar se descuenta el stock de cada ítem.
-            </p>
-          ) : null}
-        </Form>
+            ) : null}
+          </Form>
+        </Card>
       ) : null}
     </div>
   );

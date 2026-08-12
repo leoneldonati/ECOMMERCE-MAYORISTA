@@ -1,5 +1,7 @@
 import type { Route } from "./+types/mi-cuenta";
 
+import { Alert } from "~/components/ui/alert";
+import { Card } from "~/components/ui/card";
 import { getContextUser, requireUser } from "~/lib/middleware.server";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -32,28 +34,26 @@ export default function Account({ loaderData }: Route.ComponentProps) {
       <h1 className="mb-2 text-2xl font-bold">{user.business_name}</h1>
 
       {user.status === "pending" ? (
-        <div className="mb-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Tu cuenta está <strong>en revisión</strong>. Cuando un administrador la
-          apruebe vas a poder ver precios y realizar pedidos.
-        </div>
+        <Alert tone="warning" padding="md" className="mb-6">
+          Tu cuenta está <strong>en revisión</strong>. Cuando un administrador la apruebe vas a
+          poder ver precios y realizar pedidos.
+        </Alert>
       ) : null}
       {user.status === "rejected" ? (
-        <div className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          Tu cuenta fue <strong>rechazada</strong>. Si pensás que es un error,
-          comunicate con nosotros para revisar el caso.
-        </div>
+        <Alert tone="danger" padding="md" className="mb-6">
+          Tu cuenta fue <strong>rechazada</strong>. Si pensás que es un error, comunicate con
+          nosotros para revisar el caso.
+        </Alert>
       ) : null}
 
-      <dl className="grid grid-cols-1 gap-3 rounded-lg border border-stone-200 bg-white p-6 text-sm sm:grid-cols-2">
+      <Card as="dl" className="grid grid-cols-1 gap-3 p-6 text-sm sm:grid-cols-2">
         <div>
           <dt className="text-stone-500">Estado</dt>
           <dd className="font-medium">{STATUS_LABEL[user.status] ?? user.status}</dd>
         </div>
         <div>
           <dt className="text-stone-500">Rol</dt>
-          <dd className="font-medium">
-            {user.role === "admin" ? "Administrador" : "Cliente"}
-          </dd>
+          <dd className="font-medium">{user.role === "admin" ? "Administrador" : "Cliente"}</dd>
         </div>
         <div>
           <dt className="text-stone-500">Email</dt>
@@ -87,7 +87,7 @@ export default function Account({ loaderData }: Route.ComponentProps) {
             <dd>{CUSTOMER_TYPE_LABEL[user.customer_type] ?? user.customer_type}</dd>
           </div>
         ) : null}
-      </dl>
+      </Card>
     </div>
   );
 }
