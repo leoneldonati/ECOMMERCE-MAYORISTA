@@ -1,4 +1,4 @@
-import { useNavigation } from "react-router";
+import { Link, useNavigation } from "react-router";
 import type { FetcherWithComponents } from "react-router";
 import type { ComponentProps } from "react";
 import { Spinner } from "./spinner";
@@ -75,6 +75,28 @@ export function SubmitButton({
     <Button loading={isPending} loadingLabel={pendingLabel} {...props}>
       {children}
     </Button>
+  );
+}
+
+/**
+ * Link con la apariencia de Button: los CTAs de marca (header, catálogo,
+ * estados vacíos) reutilizan así las mismas variantes sin duplicar clases.
+ */
+export function ButtonLink({
+  variant = "primary",
+  size = "md",
+  className,
+  children,
+  ...props
+}: Omit<ComponentProps<typeof Link>, "className"> & {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  className?: string;
+}) {
+  return (
+    <Link {...props} className={`${BASE} ${VARIANTS[variant]} ${SIZES[size]} ${className ?? ""}`}>
+      {children}
+    </Link>
   );
 }
 
