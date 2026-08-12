@@ -38,6 +38,15 @@ export default function ProductDetail({ loaderData }: Route.ComponentProps) {
   const [quantity, setQuantity] = useState(product.tiers[0]?.min_qty ?? 1);
   const fetcher = useFetcher();
 
+  // Cantidad entera y acotada: mínimo 1 y tope el stock disponible, para que
+  // el input nunca proponga valores que el checkout va a rechazar.
+  const maxQty = product.stock;
+  function changeQuantity(value: number) {
+    if (!Number.isFinite(value)) return setQuantity(1);
+    const clamped = Math.max(1, Math.min(Math.floor(value), maxQty ?? Number.MAX_SAFE_INTEGER));
+    setQuantity(clamped);
+  }
+
   const unitPrice = lineUnitPrice(product.tiers, quantity);
   const subtotal = unitPrice !== null ? unitPrice * quantity : null;
   const belowMin = unitPrice === null;
@@ -98,8 +107,11 @@ export default function ProductDetail({ loaderData }: Route.ComponentProps) {
                   <input
                     type="number"
                     min={1}
+                    max={maxQty ?? undefined}
+                    step={1}
+                    inputMode="numeric"
                     value={quantity}
-                    onChange={(event) => setQuantity(Number(event.target.value))}
+                    onChange={(event) => changeQuantity(Number(event.target.value))}
                     className="w-24 rounded-md border border-stone-300 px-3 py-2 text-base"
                   />
                 </label>

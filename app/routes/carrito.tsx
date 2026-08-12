@@ -116,7 +116,7 @@ function CartLineRow({ line }: { line: CartViewLine }) {
   const fetcher = useFetcher();
   const busy = fetcher.state !== "idle";
 
-  const qtyForm = (nextQuantity: number) => (
+  const qtyForm = (nextQuantity: number, disabledMax = false) => (
     <fetcher.Form method="post" action="/carrito" className="inline-flex items-center gap-2">
       <input type="hidden" name="intent" value="update-qty" />
       <input type="hidden" name="productId" value={line.product_id} />
@@ -124,7 +124,7 @@ function CartLineRow({ line }: { line: CartViewLine }) {
       <CsrfToken />
       <button
         type="submit"
-        disabled={busy || nextQuantity <= 0}
+        disabled={busy || disabledMax || nextQuantity <= 0}
         className="rounded border border-stone-300 px-2 py-0.5 text-sm disabled:opacity-40"
       >
         −
@@ -154,7 +154,7 @@ function CartLineRow({ line }: { line: CartViewLine }) {
         <div className="flex items-center gap-2">
           {qtyForm(line.quantity - 1)}
           <span className="w-8 text-center text-sm font-medium">{line.quantity}</span>
-          {qtyForm(line.quantity + 1)}
+          {qtyForm(line.quantity + 1, line.quantity >= line.stock)}
           <span className="ml-2 text-sm text-stone-500">
             {line.unitPrice !== null ? `${formatARS(line.unitPrice)} x unidad` : ""}
           </span>
