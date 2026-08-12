@@ -1,6 +1,7 @@
 import {
   data,
   isRouteErrorResponse,
+  Link,
   Links,
   Meta,
   Outlet,
@@ -8,17 +9,21 @@ import {
   ScrollRestoration,
   useRouteLoaderData,
 } from "react-router";
-
+import { useEffect } from "react";
 import type { Route } from "./+types/root";
 import "./app.css";
 
 import { SiteHeader } from "./components/site-header";
+import { SiteFooter } from "./components/site-footer";
+import { ToastProvider, useToast } from "./components/ui/toast";
 import { countCartItems } from "./db/repos/cart.server";
 import type { PublicUser } from "./db/types";
 import { getCurrentUser } from "./lib/auth.server";
 import { commitCsrfCookie, getCsrfToken } from "./lib/csrf.server";
+import { clearFlash, readFlash } from "./lib/flash.server";
 
 export const links: Route.LinksFunction = () => [
+  { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
@@ -43,13 +48,23 @@ export const middleware: Route.MiddlewareFunction[] = [
 ];
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const [user, csrf] = await Promise.all([getCurrentUser(request), getCsrfToken(request)]);
+  const [user, csrf, flash] = await Promise.all([
+    getCurrentUser(request),
+    getCsrfToken(request),
+    readFlash(request),
+  ]);
   // El contador del mini-carrito va solo para quien puede comprar (aprobados/admin).
   const canBuy = user !== null && (user.role === "admin" || user.status === "approved");
   const cartCount = canBuy ? countCartItems(user.id) : 0;
+
+  const headers = new Headers();
+  headers.append("Set-Cookie", await commitCsrfCookie(request));
+  // Si había flash, se lee y se borra en el mismo request para mostrarlo una sola vez.
+  if (flash) headers.append("Set-Cookie", await clearFlash());
+
   return data(
-    { user, csrf, cartCount },
-    { headers: { "Set-Cookie": await commitCsrfCookie(request) } },
+    { user, csrf, cartCount, flash },
+    { headers },
   );
 }
 
@@ -59,6 +74,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#b45309" />
         <Meta />
         <Links />
       </head>
@@ -71,30 +87,51 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
+function AppContent() {
   const rootData = useRouteLoaderData("root") as
-    | { user: PublicUser | null; cartCount: number }
+    | { user: PublicUser | null; cartCount: number; flash?: string | undefined }
     | undefined;
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (rootData?.flash) toast(rootData.flash);
+  }, [rootData?.flash, toast]);
+
   return (
-    <div className="flex min-h-screen flex-col bg-stone-50 text-stone-900">
+    <div className="flex min-h-screen flex-col">
+      <a
+        href="#contenido"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-brand-700 focus:px-4 focus:py-2 focus:text-white"
+      >
+        Saltar al contenido
+      </a>
       <SiteHeader user={rootData?.user ?? null} cartCount={rootData?.cartCount ?? 0} />
-      <main className="flex-1">
+      <main id="contenido" tabIndex={-1} className="flex-1 focus:outline-none">
         <Outlet />
       </main>
+      <SiteFooter />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
   );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Algo salió mal.";
-  let details = "Ocurrió un error inesperado.";
+  let details = "Ocurrió un error inesperado. Probá de nuevo en unos minutos.";
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
+    message = error.status === 404 ? "Página no encontrada" : `Error ${error.status}`;
     details =
       error.status === 404
-        ? "La página solicitada no existe."
+        ? "La página que buscás no existe o fue movida."
         : error.statusText || details;
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     details = error.message;
@@ -102,11 +139,20 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="container mx-auto p-4 pt-16">
-      <h1>{message}</h1>
-      <p>{details}</p>
+    <main className="container mx-auto flex flex-col items-center px-4 py-20 text-center">
+      <p className="mb-2 text-sm font-bold tracking-tight text-brand-700">
+        Despensa<span className="text-stone-900">Online</span>
+      </p>
+      <h1 className="text-3xl font-bold">{message}</h1>
+      <p className="mt-2 max-w-md text-stone-600">{details}</p>
+      <Link
+        to="/"
+        className="mt-6 rounded-md bg-brand-700 px-5 py-2.5 font-medium text-white transition-colors hover:bg-brand-800"
+      >
+        Volver al inicio
+      </Link>
       {stack && (
-        <pre className="w-full overflow-x-auto p-4">
+        <pre className="mt-8 w-full max-w-2xl overflow-x-auto rounded-lg bg-stone-900 p-4 text-left text-xs text-stone-100">
           <code>{stack}</code>
         </pre>
       )}

@@ -85,6 +85,9 @@ Regla de aplicación (ver `app/lib/pricing.ts`): gana la escala con mayor
 | total_cents | INTEGER | Suma de subtotales al crear la orden |
 | created_at / updated_at | TEXT | |
 | confirmed_at / paid_at / shipped_at / cancelled_at | TEXT NULL | |
+| payment_reference | TEXT NULL | Comprobante que declaró el cliente al avisar el pago |
+| payment_message | TEXT NULL | Mensaje opcional del aviso |
+| payment_notified_at | TEXT NULL | Fecha del aviso; NULL = sin aviso |
 
 ## `order_items` (líneas de pedido)
 

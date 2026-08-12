@@ -2,6 +2,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { withTransaction } from "./transaction.server";
 import { migration as initial } from "./migrations/001_initial";
 import { migration as cart } from "./migrations/002_cart";
+import { migration as paymentNotification } from "./migrations/003_payment_notification";
 
 // Cada migración aporta un id estable, una descripción y el SQL a aplicar.
 // Se aplican en orden de aparición y se registran en la tabla `_migrations`.
@@ -12,7 +13,7 @@ export interface Migration {
   up: string;
 }
 
-const migrations: Migration[] = [initial, cart];
+const migrations: Migration[] = [initial, cart, paymentNotification];
 
 /**
  * Aplica las migraciones pendientes en orden, cada una dentro de

@@ -22,7 +22,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Mi cuenta — MayoristaAR" }];
+  return [{ title: "Mi cuenta — Despensa Online" }];
 }
 
 export default function Account({ loaderData }: Route.ComponentProps) {

@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Route } from "./+types/productos.$slug";
 
 import { CsrfToken } from "~/components/csrf-token";
+import { FetcherSubmitButton } from "~/components/ui/button";
 import { PricesNotice } from "~/components/prices-notice";
 import { findProductBySlug } from "~/db/repos/products.server";
 import { getCurrentUser } from "~/lib/auth.server";
@@ -25,7 +26,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 export function meta({ loaderData }: Route.MetaArgs) {
   const { product } = loaderData;
   return [
-    { title: `${product.name} — MayoristaAR` },
+    { title: `${product.name} — Despensa Online` },
     ...(product.description ? [{ name: "description", content: product.description }] : []),
   ];
 }
@@ -45,13 +46,13 @@ export default function ProductDetail({ loaderData }: Route.ComponentProps) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <nav className="mb-6 text-sm text-stone-500">
-        <Link to="/productos" className="transition-colors hover:text-amber-700">
+        <Link to="/productos" className="transition-colors hover:text-brand-700">
           Catálogo
         </Link>
         <span className="mx-2">/</span>
         <Link
           to={`/productos?categoria=${product.category_slug}`}
-          className="transition-colors hover:text-amber-700"
+          className="transition-colors hover:text-brand-700"
         >
           {product.category_name}
         </Link>
@@ -131,13 +132,9 @@ export default function ProductDetail({ loaderData }: Route.ComponentProps) {
                   <input type="hidden" name="productId" value={product.id} />
                   <input type="hidden" name="quantity" value={quantity} />
                   <CsrfToken />
-                  <button
-                    type="submit"
-                    disabled={!canSubmit}
-                    className="rounded-md bg-amber-600 px-5 py-2.5 font-medium text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
+                  <FetcherSubmitButton fetcher={fetcher} pendingLabel="Agregando…" disabled={!canSubmit}>
                     Agregar al carrito
-                  </button>
+                  </FetcherSubmitButton>
                 </fetcher.Form>
                 {belowMin ? (
                   <span className="text-sm text-amber-700">

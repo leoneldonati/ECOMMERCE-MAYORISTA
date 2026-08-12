@@ -2,8 +2,11 @@ import { data, Form, redirect } from "react-router";
 import type { Route } from "./+types/registro";
 
 import { CsrfToken } from "~/components/csrf-token";
+import { SubmitButton } from "~/components/ui/button";
+import { SelectField, TextField } from "~/components/ui/field";
 import { createLoginCookie, getCurrentUser } from "~/lib/auth.server";
 import { requireCsrf } from "~/lib/csrf.server";
+import { redirectWithFlash } from "~/lib/flash.server";
 import { fieldErrors, registerSchema } from "~/lib/validation.server";
 import { createUser, findUserByEmail } from "~/db/repos/users.server";
 import { hashPassword } from "~/lib/password.server";
@@ -64,17 +67,15 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const cookie = await createLoginCookie(user.id);
-  return redirect("/mi-cuenta", { headers: { "Set-Cookie": cookie } });
+  return redirectWithFlash("/mi-cuenta", "Cuenta creada. Queda en revisión.", cookie);
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Solicitar cuenta — MayoristaAR" }];
+  return [{ title: "Solicitar cuenta — Despensa Online" }];
 }
 
 export default function Register({ actionData }: Route.ComponentProps) {
-  const errors = actionData?.errors as Record<string, string> | undefined;
-  const field = (name: string) =>
-    errors?.[name] ? <p className="text-xs text-red-600">{errors[name]}</p> : null;
+  const errors = (actionData?.errors as Record<string, string> | undefined) ?? {};
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">
@@ -82,93 +83,55 @@ export default function Register({ actionData }: Route.ComponentProps) {
       <p className="mb-6 text-sm text-stone-600">
         Tu cuenta queda en revisión y la habilita un administrador antes de poder comprar.
       </p>
+      {errors._form ? (
+        <p role="alert" className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          {errors._form}
+        </p>
+      ) : null}
       <Form method="post" className="flex flex-col gap-4">
         <CsrfToken />
-        <label className="flex flex-col gap-1 text-sm">
-          Razón social
-          <input
-            type="text"
-            name="businessName"
-            required
-            className="rounded-md border border-stone-300 px-3 py-2 text-base"
-          />
-          {field("businessName")}
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          CUIT
-          <input
-            type="text"
-            name="cuit"
-            inputMode="numeric"
-            required
-            placeholder="20-12345678-9"
-            className="rounded-md border border-stone-300 px-3 py-2 text-base"
-          />
-          {field("cuit")}
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Email
-          <input
-            type="email"
-            name="email"
-            required
-            autoComplete="email"
-            className="rounded-md border border-stone-300 px-3 py-2 text-base"
-          />
-          {field("email")}
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Contraseña
-          <input
-            type="password"
-            name="password"
-            required
-            autoComplete="new-password"
-            className="rounded-md border border-stone-300 px-3 py-2 text-base"
-          />
-          {field("password")}
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Persona de contacto
-          <input
-            type="text"
-            name="contactName"
-            className="rounded-md border border-stone-300 px-3 py-2 text-base"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Teléfono
-          <input
-            type="tel"
-            name="phone"
-            className="rounded-md border border-stone-300 px-3 py-2 text-base"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Provincia
-          <input
-            type="text"
-            name="province"
-            className="rounded-md border border-stone-300 px-3 py-2 text-base"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Tipo de cliente
-          <select name="customerType" className="rounded-md border border-stone-300 px-3 py-2 text-base">
-            <option value="">Seleccioná...</option>
-            {CUSTOMER_TYPES.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="submit"
-          className="rounded-md bg-amber-600 px-4 py-2 font-medium text-white transition-colors hover:bg-amber-700"
-        >
-          Solicitar cuenta
-        </button>
+        <TextField
+          label="Razón social"
+          name="businessName"
+          required
+          error={errors.businessName}
+        />
+        <TextField
+          label="CUIT"
+          name="cuit"
+          inputMode="numeric"
+          required
+          placeholder="20-12345678-9"
+          error={errors.cuit}
+        />
+        <TextField
+          label="Email"
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          error={errors.email}
+        />
+        <TextField
+          label="Contraseña"
+          name="password"
+          type="password"
+          required
+          autoComplete="new-password"
+          error={errors.password}
+        />
+        <TextField label="Persona de contacto" name="contactName" error={errors.contactName} />
+        <TextField label="Teléfono" name="phone" type="tel" error={errors.phone} />
+        <TextField label="Provincia" name="province" error={errors.province} />
+        <SelectField label="Tipo de cliente" name="customerType" error={errors.customerType}>
+          <option value="">Seleccioná...</option>
+          {CUSTOMER_TYPES.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </SelectField>
+        <SubmitButton pendingLabel="Enviando…">Solicitar cuenta</SubmitButton>
       </Form>
     </div>
   );

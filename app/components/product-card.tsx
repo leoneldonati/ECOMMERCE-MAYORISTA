@@ -13,7 +13,7 @@ export function ProductCard({
   return (
     <article className="flex flex-col rounded-lg border border-stone-200 bg-white p-4 transition-shadow hover:shadow-sm">
       <h2 className="font-medium">
-        <Link to={`/productos/${item.slug}`} className="hover:text-amber-700">
+        <Link to={`/productos/${item.slug}`} className="hover:text-brand-700">
           {item.name}
         </Link>
       </h2>

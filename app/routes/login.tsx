@@ -2,6 +2,8 @@ import { data, Form, redirect } from "react-router";
 import type { Route } from "./+types/login";
 
 import { CsrfToken } from "~/components/csrf-token";
+import { SubmitButton } from "~/components/ui/button";
+import { TextField } from "~/components/ui/field";
 import { createLoginCookie, getCurrentUser } from "~/lib/auth.server";
 import { requireCsrf } from "~/lib/csrf.server";
 import {
@@ -65,49 +67,45 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Ingresar — MayoristaAR" }];
+  return [{ title: "Ingresar — Despensa Online" }];
 }
 
 export default function Login({ actionData }: Route.ComponentProps) {
-  const errors = actionData?.errors;
+  const errors = (actionData?.errors ?? {}) as Record<string, string>;
   return (
     <div className="mx-auto flex max-w-md flex-col px-4 py-16">
-      <h1 className="mb-6 text-2xl font-bold">Ingresar</h1>
-      {errors?._form ? (
-        <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{errors._form}</p>
+      <h1 className="mb-2 text-2xl font-bold">Ingresar</h1>
+      <p className="mb-6 text-sm text-stone-600">
+        Entrá con el email de tu cuenta mayorista.
+      </p>
+      {errors._form ? (
+        <p role="alert" className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          {errors._form}
+        </p>
       ) : null}
       <Form method="post" className="flex flex-col gap-4">
         <CsrfToken />
-        <label className="flex flex-col gap-1 text-sm">
-          Email
-          <input
-            type="email"
-            name="email"
-            required
-            autoComplete="email"
-            className="rounded-md border border-stone-300 px-3 py-2 text-base"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Contraseña
-          <input
-            type="password"
-            name="password"
-            required
-            autoComplete="current-password"
-            className="rounded-md border border-stone-300 px-3 py-2 text-base"
-          />
-        </label>
-        <button
-          type="submit"
-          className="rounded-md bg-amber-600 px-4 py-2 font-medium text-white transition-colors hover:bg-amber-700"
-        >
-          Ingresar
-        </button>
+        <TextField
+          label="Email"
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          error={errors.email}
+        />
+        <TextField
+          label="Contraseña"
+          name="password"
+          type="password"
+          required
+          autoComplete="current-password"
+          error={errors.password}
+        />
+        <SubmitButton pendingLabel="Ingresando…">Ingresar</SubmitButton>
       </Form>
       <p className="mt-6 text-sm text-stone-600">
         ¿No tenés cuenta?{" "}
-        <a href="/registro" className="font-medium text-amber-700 hover:underline">
+        <a href="/registro" className="font-medium text-brand-700 hover:underline">
           Solicitá tu cuenta mayorista
         </a>
       </p>

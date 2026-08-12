@@ -5,7 +5,7 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
+    "start": "cross-env NODE_ENV=production react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
     "db:migrate": "tsx scripts/db.migrate.ts",
     "db:seed": "tsx scripts/db.seed.ts",
@@ -28,6 +28,7 @@
     "@types/node": "^22",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "cross-env": "^10.1.0",
     "tailwindcss": "^4.2.2",
     "tsx": "^4.23.12",
     "typescript": "^5.9.3",

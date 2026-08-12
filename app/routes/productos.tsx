@@ -5,7 +5,7 @@ import type { Route } from "./+types/productos";
 // (productos.$slug) bajo la misma ruta. No renderiza contenido propio.
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Catálogo — MayoristaAR" }];
+  return [{ title: "Catálogo — Despensa Online" }];
 }
 
 export default function ProductosLayout() {

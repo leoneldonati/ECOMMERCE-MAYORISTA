@@ -7,11 +7,11 @@ export const MIN_ORDER_CENTS = 1_000_000;
 
 /** Datos de la cuenta donde el cliente deposita/transfiere. Placeholder configurable. */
 export const PAYMENT_INFO = {
-  accountName: "MayoristaAR S.A.",
+  accountName: "Despensa Online S.A.",
   cuit: "30-12345678-9",
   bank: "Banco Nacional",
   cbu: "0110000000000000000000",
-  alias: "MAYORISTA.AR",
+  alias: "DESPENSA.ONLINE",
 } as const;
 
 /** Precio unitario vigente para una cantidad, o null si ninguna escala aplica. */

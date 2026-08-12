@@ -37,6 +37,14 @@ export async function requireApproved({ request, context }: MiddlewareArgs): Pro
   context.set(userContext, user);
 }
 
+/** Exige rol admin para el panel de administración. */
+export async function requireAdmin({ request, context }: MiddlewareArgs): Promise<void> {
+  const user = await getCurrentUser(request);
+  if (!user) throw redirectToLogin(request);
+  if (user.role !== "admin") throw redirect("/");
+  context.set(userContext, user);
+}
+
 /** Lee el usuario del contexto en loaders/actions de rutas protegidas. */
 export function getContextUser(context: Readonly<RouterContextProvider>): PublicUser {
   const user = context.get(userContext);

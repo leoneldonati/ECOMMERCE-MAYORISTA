@@ -69,6 +69,20 @@ no se puede agregar. Ver `app/lib/pricing.ts`.
 El pedido guarda snapshots (nombre, unidad, precio) en `order_items`, así no
 cambia aunque el catálogo se modifique.
 
+### Aviso de pago del cliente
+
+- En el detalle del pedido `pending` (`/pedidos/:id`) el cliente declara el
+  pago con el **número de comprobante/transferencia** y un mensaje opcional
+  (`notifyPayment` en `orders.server.ts`). El aviso se guarda en
+  `payment_reference` / `payment_message` / `payment_notified_at` y **no cambia
+  el estado**: la orden sigue `pending` hasta que el admin verifica la
+  acreditación.
+- Solo se permite mientras `pending` (`not_pending` en caso contrario). Mientras
+  siga pendiente, el cliente puede corregir el aviso (se sobrescribe).
+- El admin ve el aviso destacado en `/admin/pedidos/:id` y en el listado (badge
+  "Pago declarado"), y tiene un atajo **"Confirmar y marcar pagado"** que
+  descuenta el stock (confirmar) y deja la orden `paid` en una sola acción.
+
 ## Carrito y checkout (Fase 3)
 
 - El carrito es **server-side** (`cart_items` por usuario): el server es la fuente
@@ -81,8 +95,8 @@ cambia aunque el catálogo se modifique.
   `createOrderFromCart`):
   - Cada línea debe alcanzar el mínimo de su primera escala; si no, la línea no
     cuenta para el total.
-  - El stock se valida pero **no se descuenta**: el pedido queda `pending` y el
-    admin gestiona el inventario al confirmar (Fase 4).
+  - El stock se valida al crear la orden pero **no se descuenta** ahí: se
+    descuenta al confirmar en el panel (ver "Gestionar pedidos").
   - El total debe cubrir el pedido mínimo (ARS $ 10.000, `MIN_ORDER_CENTS`).
   - Si algo no valida, el pedido no se crea (nada queda a medias).
 - Al crear, se guardan snapshots y se **vacía el carrito**. El cliente ve los
@@ -90,3 +104,47 @@ cambia aunque el catálogo se modifique.
   del pedido `pending`.
 - `/pedidos` lista los pedidos del usuario; `/pedidos/:id` solo muestra los del
   propio usuario (los ajenos responden 404, no filtra datos).
+
+## Panel admin (Fase 4)
+
+El panel vive en `/admin` (acceso exclusivo con rol `admin`, gate por middleware
+`requireAdmin`; todo `action` exige CSRF). El layout `admin.tsx` tiene pestañas
+Resumen / Clientes / Pedidos / Productos.
+
+### Aprobar clientes
+
+- `/admin/clientes` lista cuentas (`?estado=pending` para solo pendientes, por
+  defecto todas). Cada fila permite **Aprobar** (1 clic) o **Rechazar**
+  (confirmación de 2 clics) → `setUserStatus` actualiza `status` y el timestamp
+  (`approved_at`/`rejected_at`).
+- Con más de un pendiente hay un "Aprobar todas" (también con confirmación).
+- Al aprobar se desbloquea precio/stock y compra; al rechazar, el cliente lo ve
+  en `/mi-cuenta`.
+
+### Gestionar pedidos
+
+- `/admin/pedidos` lista todas las órdenes con datos del cliente (JOIN a users),
+  con chips de filtro por estado (por defecto "Pendientes", lo accionable primero).
+- `/admin/pedidos/:id`: dos columnas (datos del cliente | ítems + total). Los
+  botones avanzan el estado según la transición permitida
+  (`transitionOrderStatus` en `orders.server.ts`):
+  - `pending → confirmed`: valida el stock de cada ítem y **descuenta el stock**
+    dentro de la misma transacción (falla con mensaje claro si no alcanza).
+  - `confirmed → paid | cancelled`
+  - `paid → shipped`
+  - No se puede retroceder; `cancelled` solo desde `pending`/`confirmed`.
+  - Con aviso de pago presente en una orden `pending`, se ofrece el botón
+    **"Confirmar y marcar pagado"**, que ejecuta `confirmed` + `paid` (descuenta
+    stock) en una sola request.
+
+### Productos
+
+- `/admin/productos` lista todo el catálogo (activos e inactivos) con stock y
+  escalas; permite **activar/desactivar** y **eliminar** (la FK de `order_items`
+  impide borrar un producto con pedidos, integridad histórica).
+- `/admin/productos/nuevo` y `/admin/productos/:id/editar`: formulario con
+  categoría, slug (autogenerado desde el nombre, editable, unicidad validada),
+  unidad de venta, presentación, stock, activo y hasta 6 **renglones dinámicos
+  de escala** (cantidad mínima + precio). Los precios se ingresan en **pesos**
+  (formato `1.200,50` aceptado) y se convierten a centavos (`pesosToCents`);
+  las escalas deben ser ascendentes y sin repetir (validación zod + CHECK de DB).

@@ -96,7 +96,19 @@ admin `confirmed` (stock + total) → `paid` (recibió transferencia/depósito) 
 ## Fases del proyecto
 
 1. ✅ Infraestructura de datos + auth (registro, login, sesiones, CSRF)
-2. ⬜ Catálogo B2B (precios según rol, visibles para aprobados)
-3. ⬜ Carrito + pedido (mínimo $ 10.000, pago manual)
-4. ⬜ Panel admin (aprobar clientes, productos, pedidos)
+2. ✅ Catálogo B2B (precios según rol, visibles para aprobados)
+3. ✅ Carrito + pedido (mínimo $ 10.000, pago manual)
+4. ✅ Panel admin (aprobar clientes, productos, pedidos)
 5. ⬜ Pulido y refinamientos
+
+## Producción (react-router-serve)
+
+`npm start` lanza el server con `cross-env NODE_ENV=production`. El `NODE_ENV`
+debe estar seteado **en el entorno antes de que Node evalúe los imports**:
+el CLI de `react-router-serve` importa `react-router` (y por lo tanto `react`)
+de forma estática y recién después hace `NODE_ENV ?? "production"`, demasiado
+tarde para que `react/index.js` elija el build correcto. Sin el env var se
+mezclan `react.development.js` con `react-dom-server.production`, lo que
+revienta el SSR con `TypeError: dispatcher.getOwner is not a function`
+(dev `createElement` llama `dispatcher.getOwner()` sobre el dispatcher prod,
+que no lo expone).

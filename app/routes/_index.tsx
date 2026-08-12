@@ -9,7 +9,7 @@ export async function loader({}: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "MayoristaAR — Alimentos no perecederos por mayor" },
+    { title: "Despensa Online — Alimentos no perecederos por mayor" },
     {
       name: "description",
       content:
@@ -25,7 +25,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     <div className="mx-auto max-w-6xl px-4 py-16">
       <section className="max-w-xl">
         <h1 className="text-4xl font-bold tracking-tight">
-          Alimentos no perecederos <span className="text-amber-600">por mayor</span>
+          Alimentos no perecederos <span className="text-brand-700">por mayor</span>
         </h1>
         <p className="mt-4 text-lg text-stone-600">
           Precios por escalas de cantidad, pedido mínimo de $ 10.000 y atención a
@@ -34,7 +34,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         <div className="mt-8 flex gap-3">
           <Link
             to="/productos"
-            className="rounded-md bg-amber-600 px-5 py-2.5 font-medium text-white transition-colors hover:bg-amber-700"
+            className="rounded-md bg-brand-700 px-5 py-2.5 font-medium text-white transition-colors hover:bg-brand-800"
           >
             Ver catálogo
           </Link>
@@ -54,7 +54,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             <Link
               key={category.slug}
               to={`/productos?categoria=${category.slug}`}
-              className="rounded-lg border border-stone-200 bg-white p-4 transition-colors hover:border-amber-300"
+              className="rounded-lg border border-stone-200 bg-white p-4 transition-colors hover:border-brand-300"
             >
               <h3 className="font-medium">{category.name}</h3>
               {category.description ? (

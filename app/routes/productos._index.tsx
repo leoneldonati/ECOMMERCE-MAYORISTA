@@ -30,7 +30,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Catálogo — MayoristaAR" }];
+  return [{ title: "Catálogo — Despensa Online" }];
 }
 
 function href(categoria: string, q: string): string {
@@ -47,8 +47,8 @@ export default function Catalog({ loaderData }: Route.ComponentProps) {
 
   const chipClass = (active: boolean) =>
     active
-      ? "rounded-full bg-amber-600 px-3 py-1 font-medium text-white"
-      : "rounded-full border border-stone-300 bg-white px-3 py-1 text-stone-700 transition-colors hover:border-amber-400";
+      ? "rounded-full bg-brand-700 px-3 py-1 font-medium text-white"
+      : "rounded-full border border-stone-300 bg-white px-3 py-1 text-stone-700 transition-colors hover:border-brand-400";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">

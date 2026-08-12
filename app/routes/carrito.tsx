@@ -2,12 +2,14 @@ import { data, Form, Link, redirect, useFetcher } from "react-router";
 import type { Route } from "./+types/carrito";
 
 import { CsrfToken } from "~/components/csrf-token";
+import { SubmitButton } from "~/components/ui/button";
+import { Badge } from "~/components/ui/badge";
 import { listCartWithProducts, removeItem, upsertItem } from "~/db/repos/cart.server";
 import { createOrderFromCart, OrderError } from "~/db/repos/orders.server";
 import { getContextUser, requireApproved } from "~/lib/middleware.server";
 import { requireCsrf } from "~/lib/csrf.server";
 import { formatARS } from "~/lib/money";
-import { computeCartTotal, lineMinQty, lineUnitPrice, shortfallToMin } from "~/lib/orders";
+import { computeCartTotal, lineMinQty, lineUnitPrice, MIN_ORDER_CENTS, shortfallToMin } from "~/lib/orders";
 
 export const middleware: Route.MiddlewareFunction[] = [requireApproved];
 
@@ -88,7 +90,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Carrito — MayoristaAR" }];
+  return [{ title: "Carrito — Despensa Online" }];
 }
 
 type CartViewLine = Awaited<ReturnType<typeof loader>>["lines"][number];
@@ -117,7 +119,7 @@ function CartLineRow({ line }: { line: CartViewLine }) {
     <li className="border-t border-stone-100 p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <Link to={`/productos/${line.slug}`} className="font-medium hover:text-amber-700">
+          <Link to={`/productos/${line.slug}`} className="font-medium hover:text-brand-700">
             {line.name}
           </Link>
           <p className="text-sm text-stone-500">
@@ -125,9 +127,7 @@ function CartLineRow({ line }: { line: CartViewLine }) {
           </p>
         </div>
         {line.belowMin ? (
-          <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-            Mínimo {line.minQty} por línea
-          </span>
+          <Badge tone="warning">Mínimo {line.minQty} por línea</Badge>
         ) : (
           <span className="font-semibold">{formatARS(line.subtotal!)}</span>
         )}
@@ -171,9 +171,9 @@ export default function Cart({ loaderData, actionData }: Route.ComponentProps) {
         <div className="rounded-lg border border-stone-200 bg-white p-10 text-center">
           {errors?._form ? <p className="mb-3 text-sm text-red-600">{errors._form}</p> : null}
           <p className="mb-4 text-stone-600">Tu carrito está vacío.</p>
-          <Link to="/productos" className="font-medium text-amber-700 hover:underline">
-            Ver el catálogo
-          </Link>
+            <Link to="/productos" className="font-medium text-brand-700 hover:underline">
+              Ver el catálogo
+            </Link>
         </div>
       ) : (
         <>
@@ -194,7 +194,7 @@ export default function Cart({ loaderData, actionData }: Route.ComponentProps) {
 
           {shortfall > 0 ? (
             <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Te faltan {formatARS(shortfall)} para el pedido mínimo de {formatARS(1_000_000)}.
+              Te faltan {formatARS(shortfall)} para el pedido mínimo de {formatARS(MIN_ORDER_CENTS)}.
             </p>
           ) : null}
 
@@ -210,13 +210,13 @@ export default function Cart({ loaderData, actionData }: Route.ComponentProps) {
                 placeholder="Horario de entrega, aclaraciones…"
               />
             </label>
-            <button
-              type="submit"
+            <SubmitButton
+              pendingLabel="Creando pedido…"
               disabled={shortfall > 0 || lines.some((line) => line.belowMin)}
-              className="mt-4 rounded-md bg-amber-600 px-5 py-2.5 font-medium text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-4"
             >
               Realizar pedido
-            </button>
+            </SubmitButton>
           </Form>
         </>
       )}

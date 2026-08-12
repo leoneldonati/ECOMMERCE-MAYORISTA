@@ -99,6 +99,12 @@ export interface Order {
   paid_at: string | null;
   shipped_at: string | null;
   cancelled_at: string | null;
+  /** Referencia del comprobante que declaró el cliente al avisar el pago */
+  payment_reference: string | null;
+  /** Mensaje opcional del cliente junto al aviso de pago */
+  payment_message: string | null;
+  /** Fecha del aviso de pago (null = el cliente todavía no avisó) */
+  payment_notified_at: string | null;
 }
 
 export interface OrderItem {

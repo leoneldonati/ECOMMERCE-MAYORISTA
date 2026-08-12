@@ -14,7 +14,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Mis pedidos — MayoristaAR" }];
+  return [{ title: "Mis pedidos — Despensa Online" }];
 }
 
 const statusLabels: Record<OrderStatus, { label: string; classes: string }> = {
@@ -45,7 +45,7 @@ export default function OrderList({ loaderData }: Route.ComponentProps) {
       {orders.length === 0 ? (
         <div className="rounded-lg border border-stone-200 bg-white p-10 text-center">
           <p className="mb-4 text-stone-600">Todavía no realizaste pedidos.</p>
-          <Link to="/productos" className="font-medium text-amber-700 hover:underline">
+          <Link to="/productos" className="font-medium text-brand-700 hover:underline">
             Empezar a comprar
           </Link>
         </div>
