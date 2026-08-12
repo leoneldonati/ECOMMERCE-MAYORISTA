@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --frozen-lockfile
+
+      - run: npm run format
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+
+      # Smoke de la base desde cero: valida migraciones/seed + backup en el
+      # mismo escenario de un deploy limpio (base vacía en un VPS).
+      - name: Smoke de base de datos y backup
+        run: |
+          npm run db:migrate
+          npm run db:seed
+          npm run db:backup
+          test -n "$(ls data/backups/app-*.db 2>/dev/null | head -1)"
