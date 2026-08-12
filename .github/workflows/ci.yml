@@ -32,3 +32,17 @@ jobs:
           npm run db:seed
           npm run db:backup
           test -n "$(ls data/backups/app-*.db 2>/dev/null | head -1)"
+
+  # Valida que el Dockerfile compile (su-exec, entrypoint, node:sqlite en alpine)
+  # y que el entrypoint no-root + backup sidecar arranquen correctamente.
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build runtime image
+        run: docker build -t despensa-online:latest .
+
+      - name: Build seed image
+        run: docker build --target development-dependencies-env -t despensa-online:dev .
