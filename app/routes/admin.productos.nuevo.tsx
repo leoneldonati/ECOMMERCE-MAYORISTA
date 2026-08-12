@@ -23,7 +23,10 @@ interface RawForm {
   active: boolean;
 }
 
-function buildValues(raw: RawForm, tierRows: { minQty: string; price: string }[]): ProductFormValues {
+function buildValues(
+  raw: RawForm,
+  tierRows: { minQty: string; price: string }[],
+): ProductFormValues {
   const stock = Number(raw.stock);
   return {
     ...raw,
@@ -67,10 +70,14 @@ export async function action({ request }: Route.ActionArgs) {
 
   const parsed = productSchema.safeParse({ ...raw, tiers });
   if (!parsed.success) {
-    return data({ errors: fieldErrors(parsed.error), values: buildValues(raw, tierRows) }, { status: 400 });
+    return data(
+      { errors: fieldErrors(parsed.error), values: buildValues(raw, tierRows) },
+      { status: 400 },
+    );
   }
 
-  const { name, categoryId, slug, unitLabel, packageSize, description, stock, active } = parsed.data;
+  const { name, categoryId, slug, unitLabel, packageSize, description, stock, active } =
+    parsed.data;
   if (findProductBySlug(slug)) {
     return data(
       { errors: { slug: "El slug ya está en uso." }, values: buildValues(raw, tierRows) },
@@ -97,7 +104,8 @@ export async function action({ request }: Route.ActionArgs) {
 
 export default function NewProduct({ loaderData, actionData }: Route.ComponentProps) {
   const { categories } = loaderData;
-  const feedback = actionData as { errors?: Record<string, string>; values?: ProductFormValues } | undefined;
+  const feedback = actionData as
+    { errors?: Record<string, string>; values?: ProductFormValues } | undefined;
 
   return (
     <div>

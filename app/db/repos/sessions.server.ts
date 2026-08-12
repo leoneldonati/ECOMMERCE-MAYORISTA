@@ -12,13 +12,8 @@ export function createSession(userId: number): string {
   const token = randomBytes(32).toString("hex");
   const now = new Date();
   db.prepare(
-    "INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)"
-  ).run(
-    token,
-    userId,
-    now.toISOString(),
-    new Date(now.getTime() + SESSION_TTL_MS).toISOString()
-  );
+    "INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+  ).run(token, userId, now.toISOString(), new Date(now.getTime() + SESSION_TTL_MS).toISOString());
   return token;
 }
 

@@ -24,10 +24,10 @@ export function runMigrations(db: DatabaseSync): void {
     `CREATE TABLE IF NOT EXISTS _migrations (
       id TEXT PRIMARY KEY,
       applied_at TEXT NOT NULL
-    )`
+    )`,
   );
   const applied = new Set(
-    (db.prepare("SELECT id FROM _migrations").all() as { id: string }[]).map((row) => row.id)
+    (db.prepare("SELECT id FROM _migrations").all() as { id: string }[]).map((row) => row.id),
   );
   const record = db.prepare("INSERT INTO _migrations (id, applied_at) VALUES (?, ?)");
   for (const migration of migrations) {

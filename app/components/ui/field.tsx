@@ -92,7 +92,14 @@ export function TextField({
       hintId={hintId}
       errorId={errorId}
     >
-      <input {...props} ref={inputRef} id={id} aria-invalid={error ? true : undefined} aria-describedby={describedBy} className={CONTROL_CLASS} />
+      <input
+        {...props}
+        ref={inputRef}
+        id={id}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy}
+        className={CONTROL_CLASS}
+      />
     </FieldShell>
   );
 }
@@ -121,7 +128,13 @@ export function SelectField({
       hintId={hintId}
       errorId={errorId}
     >
-      <select {...props} id={id} aria-invalid={error ? true : undefined} aria-describedby={describedBy} className={CONTROL_CLASS}>
+      <select
+        {...props}
+        id={id}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy}
+        className={CONTROL_CLASS}
+      >
         {children}
       </select>
     </FieldShell>
@@ -163,6 +176,11 @@ export function TextareaField({
 }
 
 /** Retorna los ids a describir (solo los que existen: hint y/o error). */
-function describeId(hintId: string, hint: string | undefined, errorId: string, error?: string): string | undefined {
+function describeId(
+  hintId: string,
+  hint: string | undefined,
+  errorId: string,
+  error?: string,
+): string | undefined {
   return [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(" ") || undefined;
 }

@@ -60,7 +60,9 @@ export function ProductForm({
 
   function addTier() {
     setTiers((list) =>
-      list.length < MAX_TIERS ? [...list, { minQty: String(Number(list[list.length - 1].minQty || 1) + 1), price: "" }] : list,
+      list.length < MAX_TIERS
+        ? [...list, { minQty: String(Number(list[list.length - 1].minQty || 1) + 1), price: "" }]
+        : list,
     );
   }
 
@@ -92,7 +94,13 @@ export function ProductForm({
         hint="Se genera desde el nombre; podés ajustarlo a mano."
         error={errors.slug}
       />
-      <SelectField label="Categoría" name="categoryId" required defaultValue={values?.categoryId ?? ""} error={errors.categoryId}>
+      <SelectField
+        label="Categoría"
+        name="categoryId"
+        required
+        defaultValue={values?.categoryId ?? ""}
+        error={errors.categoryId}
+      >
         <option value="">Seleccioná…</option>
         {categories.map((category) => (
           <option key={category.id} value={category.id}>

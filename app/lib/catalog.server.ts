@@ -77,10 +77,7 @@ export function toCatalogItem(product: ProductWithTiers, canSeePrices: boolean):
   };
 }
 
-export function toCatalogDetail(
-  product: ProductWithTiers,
-  canSeePrices: boolean,
-): CatalogDetail {
+export function toCatalogDetail(product: ProductWithTiers, canSeePrices: boolean): CatalogDetail {
   return {
     id: product.id,
     slug: product.slug,

@@ -26,7 +26,7 @@ export function createUser(input: CreateUserInput): User {
     .prepare(
       `INSERT INTO users
         (email, password_hash, role, status, business_name, cuit, contact_name, phone, province, address, customer_type, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       input.email,
@@ -41,7 +41,7 @@ export function createUser(input: CreateUserInput): User {
       input.address ?? null,
       input.customerType ?? null,
       now,
-      now
+      now,
     );
   return findUserById(Number(result.lastInsertRowid))!;
 }
@@ -52,9 +52,8 @@ export function findUserById(id: number): User | undefined {
 
 export function findUserByEmail(email: string): User | undefined {
   // NOCASE está declarado en la columna; pasar minúsculas por claridad.
-  return getDb()
-    .prepare("SELECT * FROM users WHERE email = ?")
-    .get(email.toLowerCase()) as User | undefined;
+  return getDb().prepare("SELECT * FROM users WHERE email = ?").get(email.toLowerCase()) as
+    User | undefined;
 }
 
 export function listUsers(status?: UserStatus): User[] {
@@ -73,15 +72,9 @@ export function setUserStatus(id: number, status: UserStatus): User | undefined 
     .prepare(
       `UPDATE users
        SET status = ?, approved_at = ?, rejected_at = ?, updated_at = ?
-       WHERE id = ?`
+       WHERE id = ?`,
     )
-    .run(
-      status,
-      status === "approved" ? now : null,
-      status === "rejected" ? now : null,
-      now,
-      id
-    );
+    .run(status, status === "approved" ? now : null, status === "rejected" ? now : null, now, id);
   return findUserById(id);
 }
 

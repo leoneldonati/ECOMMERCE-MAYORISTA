@@ -1,5 +1,3 @@
-import type { PriceTier } from "~/db/types";
-
 // Lógica pura de escalas de precio (compartida cliente/servidor, sin acceso a DB).
 // Regla: la escala aplicable es la de mayor min_qty menor o igual a la cantidad.
 

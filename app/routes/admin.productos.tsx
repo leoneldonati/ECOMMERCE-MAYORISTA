@@ -1,7 +1,14 @@
-import { data, Outlet } from "react-router";
+import { Outlet } from "react-router";
 import type { Route } from "./+types/admin.productos";
 
-import { deleteProduct, findProductById, listProducts, updateProduct } from "~/db/repos/products.server";
+import { FormError } from "~/components/ui/form-error";
+import { errorResponse } from "~/lib/action-utils.server";
+import {
+  deleteProduct,
+  findProductById,
+  listProducts,
+  updateProduct,
+} from "~/db/repos/products.server";
 import { requireAdmin } from "~/lib/middleware.server";
 import { requireCsrf } from "~/lib/csrf.server";
 import { redirectWithFlash } from "~/lib/flash.server";
@@ -13,10 +20,6 @@ import { redirectWithFlash } from "~/lib/flash.server";
 
 export const middleware: Route.MiddlewareFunction[] = [requireAdmin];
 
-function errorResponse(message: string, status = 400) {
-  return data({ errors: { _form: message } }, { status });
-}
-
 export async function loader({}: Route.LoaderArgs) {
   return { products: listProducts() };
 }
@@ -27,7 +30,8 @@ export async function action({ request }: Route.ActionArgs) {
   const intent = String(formData.get("intent") ?? "");
   const productId = Number(formData.get("productId"));
 
-  if (!Number.isInteger(productId) || productId <= 0) return errorResponse("Producto inválido.", 400);
+  if (!Number.isInteger(productId) || productId <= 0)
+    return errorResponse("Producto inválido.", 400);
   const product = findProductById(productId);
   if (!product) return errorResponse("El producto no existe.", 404);
 
@@ -57,11 +61,7 @@ export default function AdminProductosLayout({ actionData }: Route.ComponentProp
   const errors = (actionData as { errors?: Record<string, string> } | undefined)?.errors;
   return (
     <>
-      {errors?._form ? (
-        <p role="alert" className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-          {errors._form}
-        </p>
-      ) : null}
+      <FormError className="mb-4">{errors?._form}</FormError>
       <Outlet />
     </>
   );

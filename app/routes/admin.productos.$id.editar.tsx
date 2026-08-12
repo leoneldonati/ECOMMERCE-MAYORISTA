@@ -29,7 +29,10 @@ interface RawForm {
   active: boolean;
 }
 
-function buildValues(raw: RawForm, tierRows: { minQty: string; price: string }[]): ProductFormValues {
+function buildValues(
+  raw: RawForm,
+  tierRows: { minQty: string; price: string }[],
+): ProductFormValues {
   const stock = Number(raw.stock);
   return {
     ...raw,
@@ -70,7 +73,8 @@ export async function loader({ params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   await requireCsrf(request);
   const productId = Number(params.id);
-  if (!Number.isInteger(productId)) return data({ errors: { _form: "Producto inválido." } }, { status: 400 });
+  if (!Number.isInteger(productId))
+    return data({ errors: { _form: "Producto inválido." } }, { status: 400 });
 
   const existing = findProductById(productId);
   if (!existing) return data({ errors: { _form: "El producto no existe." } }, { status: 404 });
@@ -103,14 +107,21 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const parsed = productSchema.safeParse({ ...raw, tiers });
   if (!parsed.success) {
-    return data({ errors: fieldErrors(parsed.error), values: buildValues(raw, tierRows) }, { status: 400 });
+    return data(
+      { errors: fieldErrors(parsed.error), values: buildValues(raw, tierRows) },
+      { status: 400 },
+    );
   }
 
-  const { name, categoryId, slug, unitLabel, packageSize, description, stock, active } = parsed.data;
+  const { name, categoryId, slug, unitLabel, packageSize, description, stock, active } =
+    parsed.data;
   const conflict = findProductBySlug(slug);
   if (conflict && conflict.id !== productId) {
     return data(
-      { errors: { slug: "El slug ya está en uso por otro producto." }, values: buildValues(raw, tierRows) },
+      {
+        errors: { slug: "El slug ya está en uso por otro producto." },
+        values: buildValues(raw, tierRows),
+      },
       { status: 400 },
     );
   }
@@ -134,7 +145,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 export default function EditProduct({ loaderData, actionData }: Route.ComponentProps) {
   const { categories, product, productId } = loaderData;
-  const feedback = actionData as { errors?: Record<string, string>; values?: ProductFormValues } | undefined;
+  const feedback = actionData as
+    { errors?: Record<string, string>; values?: ProductFormValues } | undefined;
 
   return (
     <div>

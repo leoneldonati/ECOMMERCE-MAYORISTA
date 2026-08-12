@@ -25,10 +25,10 @@ function keyOf(ip: string, email: string): string {
   return `${ip}|${email.toLowerCase()}`;
 }
 
-export function getLock(input: {
-  ip: string;
-  email: string;
-}): { locked: boolean; remainingSeconds: number } {
+export function getLock(input: { ip: string; email: string }): {
+  locked: boolean;
+  remainingSeconds: number;
+} {
   const key = keyOf(input.ip, input.email);
   const entry = store.get(key);
   if (!entry) return { locked: false, remainingSeconds: 0 };

@@ -40,9 +40,20 @@ export interface TierInput {
 
 // Reemplazos SQL para ignorar acentos en la búsqueda (á→a, é→e, …).
 const DEACCENT_MAP: Record<string, string> = {
-  á: "a", é: "e", í: "i", ó: "o", ú: "u",
-  à: "a", è: "e", ì: "i", ò: "o", ù: "u",
-  ä: "a", ö: "o", ü: "u", ñ: "n",
+  á: "a",
+  é: "e",
+  í: "i",
+  ó: "o",
+  ú: "u",
+  à: "a",
+  è: "e",
+  ì: "i",
+  ò: "o",
+  ù: "u",
+  ä: "a",
+  ö: "o",
+  ü: "u",
+  ñ: "n",
 };
 
 /** Envuelve una columna en REPLACE encadenados normalizando minúsculas y acentos. */
@@ -56,7 +67,10 @@ function deaccent(expr: string): string {
 
 /** Normaliza el término buscado igual que deaccent(): minúsculas y sin diacríticos. */
 function normalizeSearch(value: string): string {
-  return value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
 }
 
 const PRODUCT_COLUMN_MAP: Record<keyof UpdateProductInput, string> = {
@@ -92,7 +106,7 @@ export function listProducts(filters: ProductFilters = {}): ProductWithTiers[] {
       `SELECT p.*, c.name AS category_name, c.slug AS category_slug
        FROM products p
        JOIN categories c ON c.id = p.category_id${whereSql}
-       ORDER BY p.name`
+       ORDER BY p.name`,
     )
     .all(...params) as unknown as Product[];
   return attachTiers(rows);
@@ -105,7 +119,7 @@ export function findProductBySlug(slug: string): ProductWithTiers | undefined {
       `SELECT p.*, c.name AS category_name, c.slug AS category_slug
        FROM products p
        JOIN categories c ON c.id = p.category_id
-       WHERE p.slug = ?`
+       WHERE p.slug = ?`,
     )
     .get(slug) as Product | undefined;
   if (!row) return undefined;
@@ -113,9 +127,7 @@ export function findProductBySlug(slug: string): ProductWithTiers | undefined {
 }
 
 export function findProductById(id: number): Product | undefined {
-  return getDb().prepare("SELECT * FROM products WHERE id = ?").get(id) as
-    | Product
-    | undefined;
+  return getDb().prepare("SELECT * FROM products WHERE id = ?").get(id) as Product | undefined;
 }
 
 export function listTiersForProduct(productId: number): PriceTier[] {
@@ -131,7 +143,7 @@ export function createProduct(input: CreateProductInput): Product {
     .prepare(
       `INSERT INTO products
         (category_id, slug, name, description, unit_label, package_size, stock, active, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       input.categoryId,
@@ -143,7 +155,7 @@ export function createProduct(input: CreateProductInput): Product {
       input.stock ?? 0,
       input.active === false ? 0 : 1,
       now,
-      now
+      now,
     );
   return findProductById(Number(result.lastInsertRowid))!;
 }
@@ -171,7 +183,7 @@ export function replacePriceTiers(productId: number, tiers: TierInput[]): void {
     db.prepare("DELETE FROM price_tiers WHERE product_id = ?").run(productId);
     const insert = db.prepare(
       `INSERT INTO price_tiers (product_id, min_qty, price_cents, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?)`,
     );
     const now = new Date().toISOString();
     for (const tier of tiers) {

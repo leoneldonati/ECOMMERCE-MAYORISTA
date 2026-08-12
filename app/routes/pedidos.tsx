@@ -1,5 +1,4 @@
 import { Outlet } from "react-router";
-import type { Route } from "./+types/pedidos";
 
 export default function PedidosLayout() {
   return (

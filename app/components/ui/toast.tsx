@@ -19,7 +19,9 @@ const TONE_STYLES: Record<ToastTone, string> = {
   danger: "border-red-300",
 };
 
-const ToastContext = createContext<{ toast: (message: string, tone?: ToastTone) => void } | null>(null);
+const ToastContext = createContext<{ toast: (message: string, tone?: ToastTone) => void } | null>(
+  null,
+);
 
 /** Leer el contexto de toasts. Se usa en componentes dentro de <ToastProvider>. */
 export function useToast() {

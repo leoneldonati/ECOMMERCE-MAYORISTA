@@ -63,7 +63,9 @@ function seedUsers(): void {
     role: "admin",
     status: "approved",
   });
-  console.log(`[seed] admin creado: ${SEED_ADMIN_EMAIL} / ${SEED_ADMIN_PASSWORD} (cambiar en producción)`);
+  console.log(
+    `[seed] admin creado: ${SEED_ADMIN_EMAIL} / ${SEED_ADMIN_PASSWORD} (cambiar en producción)`,
+  );
 
   if (listUsers().some((user) => user.role === "customer")) return;
   if (!isValidCuit(DEMO_CUSTOMER_CUIT)) {
@@ -80,6 +82,6 @@ function seedUsers(): void {
     customerType: "almacen",
   });
   console.log(
-    `[seed] cliente demo (pending) creado: ${DEMO_CUSTOMER_EMAIL} / ${DEMO_CUSTOMER_PASSWORD}`
+    `[seed] cliente demo (pending) creado: ${DEMO_CUSTOMER_EMAIL} / ${DEMO_CUSTOMER_PASSWORD}`,
   );
 }

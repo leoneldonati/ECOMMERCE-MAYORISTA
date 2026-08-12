@@ -20,9 +20,7 @@ export function formatARS(cents: number): string {
 export function pesosToCents(value: string): number | null {
   const cleaned = value.trim().replace(/\s+/g, "");
   if (!cleaned) return null;
-  const normalized = cleaned.includes(",")
-    ? cleaned.replace(/\./g, "").replace(",", ".")
-    : cleaned;
+  const normalized = cleaned.includes(",") ? cleaned.replace(/\./g, "").replace(",", ".") : cleaned;
   const parsed = Number(normalized);
   if (!Number.isFinite(parsed)) return null;
   return Math.round(parsed * 100);

@@ -21,7 +21,7 @@ export function listCartWithProducts(userId: number): CartLine[] {
        FROM cart_items c
        JOIN products p ON p.id = c.product_id
        WHERE c.user_id = ? AND p.active = 1
-       ORDER BY p.name`
+       ORDER BY p.name`,
     )
     .all(userId) as unknown as CartProductRow[];
   if (rows.length === 0) return [];
@@ -70,12 +70,14 @@ export function upsertItem(userId: number, productId: number, quantity: number):
      VALUES (?, ?, ?, ?, ?)
      ON CONFLICT(user_id, product_id) DO UPDATE SET
        quantity = excluded.quantity,
-       updated_at = excluded.updated_at`
+       updated_at = excluded.updated_at`,
   ).run(userId, productId, quantity, new Date().toISOString(), new Date().toISOString());
 }
 
 export function removeItem(userId: number, productId: number): void {
-  getDb().prepare("DELETE FROM cart_items WHERE user_id = ? AND product_id = ?").run(userId, productId);
+  getDb()
+    .prepare("DELETE FROM cart_items WHERE user_id = ? AND product_id = ?")
+    .run(userId, productId);
 }
 
 export function clearCart(userId: number): void {

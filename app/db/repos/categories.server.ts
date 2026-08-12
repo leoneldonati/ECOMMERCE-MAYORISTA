@@ -17,7 +17,7 @@ export function createCategory(input: CreateCategoryInput): Category {
   const result = db
     .prepare(
       `INSERT INTO categories (slug, name, description, sort_order, active, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       input.slug,
@@ -26,7 +26,7 @@ export function createCategory(input: CreateCategoryInput): Category {
       input.sortOrder ?? 0,
       input.active === false ? 0 : 1,
       now,
-      now
+      now,
     );
   return findCategoryById(Number(result.lastInsertRowid))!;
 }
@@ -39,15 +39,12 @@ export function listCategories(activeOnly = false): Category[] {
 }
 
 export function findCategoryById(id: number): Category | undefined {
-  return getDb().prepare("SELECT * FROM categories WHERE id = ?").get(id) as
-    | Category
-    | undefined;
+  return getDb().prepare("SELECT * FROM categories WHERE id = ?").get(id) as Category | undefined;
 }
 
 export function findCategoryBySlug(slug: string): Category | undefined {
   return getDb().prepare("SELECT * FROM categories WHERE slug = ?").get(slug) as
-    | Category
-    | undefined;
+    Category | undefined;
 }
 
 export interface CategoryWithCount {
@@ -67,7 +64,7 @@ export function listCategoriesWithActiveCounts(): CategoryWithCount[] {
        WHERE c.active = 1
        GROUP BY c.id
        HAVING COUNT(p.id) > 0
-       ORDER BY c.sort_order, c.name`
+       ORDER BY c.sort_order, c.name`,
     )
     .all() as unknown as CategoryWithCount[];
 }

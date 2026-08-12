@@ -66,13 +66,13 @@ export function createOrderFromCart(userId: number, notes?: string): OrderWithIt
         const min = lineMinQty(product.tiers);
         throw new OrderError(
           "line_below_min",
-          `"${product.name}" requiere un mínimo de ${min ?? "?"} unidades por línea.`
+          `"${product.name}" requiere un mínimo de ${min ?? "?"} unidades por línea.`,
         );
       }
       if (quantity > product.stock) {
         throw new OrderError(
           "insufficient_stock",
-          `Stock insuficiente de "${product.name}" (disponible: ${product.stock}).`
+          `Stock insuficiente de "${product.name}" (disponible: ${product.stock}).`,
         );
       }
 
@@ -90,17 +90,14 @@ export function createOrderFromCart(userId: number, notes?: string): OrderWithIt
     }
 
     if (total < MIN_ORDER_CENTS) {
-      throw new OrderError(
-        "below_min_order",
-        `El pedido mínimo es ${formatARS(MIN_ORDER_CENTS)}.`
-      );
+      throw new OrderError("below_min_order", `El pedido mínimo es ${formatARS(MIN_ORDER_CENTS)}.`);
     }
 
     const now = new Date().toISOString();
     const result = db
       .prepare(
         `INSERT INTO orders (user_id, status, notes, total_cents, created_at, updated_at)
-         VALUES (?, 'pending', ?, ?, ?, ?)`
+         VALUES (?, 'pending', ?, ?, ?, ?)`,
       )
       .run(userId, notes ?? null, total, now, now);
     orderId = Number(result.lastInsertRowid);
@@ -109,7 +106,7 @@ export function createOrderFromCart(userId: number, notes?: string): OrderWithIt
       `INSERT INTO order_items
         (order_id, product_id, product_name, unit_label, package_size, quantity,
          unit_price_cents, subtotal_cents)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     );
     for (const item of items) {
       insertItem.run(
@@ -120,7 +117,7 @@ export function createOrderFromCart(userId: number, notes?: string): OrderWithIt
         item.packageSize,
         item.quantity,
         item.unitPriceCents,
-        item.subtotalCents
+        item.subtotalCents,
       );
     }
 
@@ -138,9 +135,7 @@ export function listOrdersByUser(userId: number): Order[] {
 
 export function findOrderWithItems(orderId: number): OrderWithItems | undefined {
   const db = getDb();
-  const order = db.prepare("SELECT * FROM orders WHERE id = ?").get(orderId) as
-    | Order
-    | undefined;
+  const order = db.prepare("SELECT * FROM orders WHERE id = ?").get(orderId) as Order | undefined;
   if (!order) return undefined;
   const items = db
     .prepare("SELECT * FROM order_items WHERE order_id = ? ORDER BY id")
@@ -154,24 +149,23 @@ export function findOrderWithItems(orderId: number): OrderWithItems | undefined 
  * orden está `pending`; si el cliente se equivocó puede volver a avisar y el
  * registro anterior se sobrescribe.
  */
-export function notifyPayment(orderId: number, input: { reference: string; message?: string }): void {
+export function notifyPayment(
+  orderId: number,
+  input: { reference: string; message?: string },
+): void {
   const db = getDb();
   const order = db.prepare("SELECT status FROM orders WHERE id = ?").get(orderId) as
-    | { status: OrderStatus }
-    | undefined;
+    { status: OrderStatus } | undefined;
   if (!order) throw new OrderError("not_found", "El pedido no existe.");
   if (order.status !== "pending") {
-    throw new OrderError(
-      "not_pending",
-      "El pedido ya fue procesado y no admite declarar un pago.",
-    );
+    throw new OrderError("not_pending", "El pedido ya fue procesado y no admite declarar un pago.");
   }
 
   const now = new Date().toISOString();
   db.prepare(
     `UPDATE orders
      SET payment_reference = ?, payment_message = ?, payment_notified_at = ?, updated_at = ?
-     WHERE id = ?`
+     WHERE id = ?`,
   ).run(input.reference, input.message ?? null, now, now, orderId);
 }
 
@@ -203,7 +197,10 @@ const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 };
 
 /** Columna de timestamp que registra cada estado destino (para actualizarla). */
-const STATUS_TIMESTAMP: Record<OrderStatus, "confirmed_at" | "paid_at" | "shipped_at" | "cancelled_at" | null> = {
+const STATUS_TIMESTAMP: Record<
+  OrderStatus,
+  "confirmed_at" | "paid_at" | "shipped_at" | "cancelled_at" | null
+> = {
   pending: null,
   confirmed: "confirmed_at",
   paid: "paid_at",
@@ -218,9 +215,7 @@ const STATUS_TIMESTAMP: Record<OrderStatus, "confirmed_at" | "paid_at" | "shippe
  */
 export function transitionOrderStatus(orderId: number, target: OrderStatus): OrderWithItems {
   const db = getDb();
-  const order = db.prepare("SELECT * FROM orders WHERE id = ?").get(orderId) as
-    | Order
-    | undefined;
+  const order = db.prepare("SELECT * FROM orders WHERE id = ?").get(orderId) as Order | undefined;
   if (!order) throw new OrderError("not_found", "El pedido no existe.");
 
   if (!ALLOWED_TRANSITIONS[order.status].includes(target)) {
@@ -266,7 +261,11 @@ export function transitionOrderStatus(orderId: number, target: OrderStatus): Ord
         orderId,
       );
     } else {
-      db.prepare("UPDATE orders SET status = ?, updated_at = ? WHERE id = ?").run(target, now, orderId);
+      db.prepare("UPDATE orders SET status = ?, updated_at = ? WHERE id = ?").run(
+        target,
+        now,
+        orderId,
+      );
     }
   });
 
