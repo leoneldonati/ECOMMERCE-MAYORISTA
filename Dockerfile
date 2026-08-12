@@ -28,4 +28,6 @@ COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 WORKDIR /app
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["npm", "run", "start"]
+# cross-env es devDependency (no disponible en prod); como NODE_ENV ya está
+# seteado arriba, react-router-serve corre directo.
+CMD ["node", "node_modules/.bin/react-router-serve", "./build/server/index.js"]
