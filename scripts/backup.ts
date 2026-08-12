@@ -17,6 +17,19 @@ function timestamp(): string {
   return `${now.getFullYear()}${p(now.getMonth() + 1)}${p(now.getDate())}-${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}`;
 }
 
+/** Milisegundos hasta la próxima ocurrencia local de (hour:minute). */
+function msUntilNext(hour: number, minute: number): number {
+  const now = new Date();
+  const next = new Date(now);
+  next.setHours(hour, minute, 0, 0);
+  if (next <= now) next.setDate(next.getDate() + 1);
+  return next.getTime() - now.getTime();
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /** Borra los backups vencidos según mtime (approximado, corre en cada corrida). */
 function prune(backupsDir: string): void {
   const cutoff = Date.now() - retentionDays * 86_400_000;
@@ -56,9 +69,27 @@ function run(): void {
   prune(backupsDir);
 }
 
-try {
-  run();
-} catch (error) {
-  console.error(`[db:backup] ${error instanceof Error ? error.message : String(error)}`);
-  process.exit(1);
+/** Modo --watch para el sidecar del container: corre diario ~03:00 sin morir ante errores. */
+async function watchLoop(): Promise<void> {
+  for (;;) {
+    const waitMs = msUntilNext(3, 0);
+    console.log(`[db:backup] próximo backup ~03:00 (en ${Math.round(waitMs / 3_600_000)} h)`);
+    await sleep(waitMs);
+    try {
+      run();
+    } catch (error) {
+      console.error(`[db:backup] ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+}
+
+if (process.argv.includes("--watch")) {
+  void watchLoop();
+} else {
+  try {
+    run();
+  } catch (error) {
+    console.error(`[db:backup] ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
+  }
 }

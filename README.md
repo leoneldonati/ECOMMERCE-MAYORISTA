@@ -38,9 +38,9 @@ npm run db:reset   # borra la base (solo dev)
 
 El seed crea dos cuentas demo:
 
-| Rol | Email | Password |
-|---|---|---|
-| Admin | `admin@mayorista.test` | `admin1234` |
+| Rol              | Email                    | Password      |
+| ---------------- | ------------------------ | ------------- |
+| Admin            | `admin@mayorista.test`   | `admin1234`   |
 | Cliente aprobado | `cliente@mayorista.test` | `cliente1234` |
 
 Podés cambiarlas con `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` (ver
@@ -49,26 +49,26 @@ arranque.**
 
 ### Scripts
 
-| Comando | Qué hace |
-|---|---|
-| `npm run dev` | Dev con HMR |
-| `npm run build` / `npm start` | Build y server de producción |
-| `npm run typecheck` | Typegen + tsc |
-| `npm run lint` / `npm run format` | ESLint / Prettier (check) |
-| `npm run format:write` | Aplica Prettier |
-| `npm run db:setup` | migrate + seed |
-| `npm run db:backup` | Snapshot de la base (ver abajo) |
+| Comando                           | Qué hace                        |
+| --------------------------------- | ------------------------------- |
+| `npm run dev`                     | Dev con HMR                     |
+| `npm run build` / `npm start`     | Build y server de producción    |
+| `npm run typecheck`               | Typegen + tsc                   |
+| `npm run lint` / `npm run format` | ESLint / Prettier (check)       |
+| `npm run format:write`            | Aplica Prettier                 |
+| `npm run db:setup`                | migrate + seed                  |
+| `npm run db:backup`               | Snapshot de la base (ver abajo) |
 
 ## Variables de entorno
 
 Ver `.env.example`. Las usadas por la aplicación:
 
-| Variable | Default | Uso |
-|---|---|---|
-| `DATABASE_PATH` | `data/app.db` | Ruta del archivo SQLite |
-| `PORT` | `3000` | Puerto del server |
-| `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | demo | Credenciales del admin del seed |
-| `BACKUP_RETENTION_DAYS` | `7` | Días que se conservan los backups |
+| Variable                                   | Default       | Uso                               |
+| ------------------------------------------ | ------------- | --------------------------------- |
+| `DATABASE_PATH`                            | `data/app.db` | Ruta del archivo SQLite           |
+| `PORT`                                     | `3000`        | Puerto del server                 |
+| `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | demo          | Credenciales del admin del seed   |
+| `BACKUP_RETENTION_DAYS`                    | `7`           | Días que se conservan los backups |
 
 `NODE_ENV` se setea en el arranque del README/deploy: en producción controla
 cookies `Secure` y el modo dev/prod de React.
@@ -105,6 +105,7 @@ sudo docker compose logs -f app # ver logs
 ```
 
 Detalles del `compose.yaml`:
+
 - Volumen **`data:/app/data`**: la SQLite persiste aunque se recrece el container.
 - `restart: unless-stopped`: arranca solo al rebootear el server.
 - Sidecar `backup`: snapshot diario automático a `data/backups/` con rotación.

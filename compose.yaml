@@ -1,0 +1,37 @@
+# Deploy de producción: app + sidecar de backups con volumen persistente.
+# La app escucha solo en 127.0.0.1:3000; Nginx expone 443 (ver README).
+
+name: despensa-online
+
+services:
+  app:
+    build: .
+    image: despensa-online:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  backup:
+    image: despensa-online:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_PATH: /app/data/app.db
+    volumes:
+      - data:/app/data
+    command: ["node", "scripts/backup.ts", "--watch"]
+
+volumes:
+  data:
