@@ -13,7 +13,8 @@
     "db:migrate": "tsx scripts/db.migrate.ts",
     "db:seed": "tsx scripts/db.seed.ts",
     "db:reset": "tsx scripts/db.reset.ts",
-    "db:setup": "npm run db:migrate && npm run db:seed"
+    "db:setup": "npm run db:migrate && npm run db:seed",
+    "db:backup": "tsx scripts/backup.ts"
   },
   "dependencies": {
     "@react-router/fs-routes": "^8.3.0",
