@@ -24,14 +24,17 @@ pagos manuales (transferencia/depósito).
 
 - `app/db/*`, `app/lib/*.server.ts` son SOLO servidor (sufijo `.server.ts`).
   Importarlos únicamente desde loaders/actions u otros `.server.ts`.
-- `app/lib/pricing.ts` y `app/lib/money.ts` son compartidos (cliente + servidor):
-  código puro, sin acceso a DB.
+- `app/lib/pricing.ts`, `money.ts`, `dates.ts`, `cuit.ts` y `order-ui.ts` son
+  compartidos (cliente + servidor): código puro, sin acceso a DB. Lo mismo
+  aplica a `app/components/ui/*` (componentes sin importaciones `.server`).
 - `app/db/types.ts` solo tipos (sin runtime); importar siempre con `import type`.
 
 ## Comandos
 
 - `npm run dev` — desarrollo con HMR
 - `npm run typecheck` — typegen + tsc (obligatorio antes de dar por terminado un cambio)
+- `npm run lint` — ESLint (flat; react-hooks clásico + prettier-config al final)
+- `npm run format` — Prettier en modo check; `npm run format:write` aplica
 - `npm run build` / `npm start` — producción
 - `npm run db:migrate` — aplica migraciones pendientes
 - `npm run db:seed` — seed idempotente (solo si la base está vacía)

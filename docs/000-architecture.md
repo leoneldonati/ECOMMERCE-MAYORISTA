@@ -23,25 +23,30 @@ restringidos a clientes **aprobados por el admin**.
 ## Decisiones clave
 
 ### SQLite en Fase 1
+
 El archivo vive en `data/app.db` (gitignored). Todo el acceso pasa por los repos
 de `app/db/repos/*`: las rutas/loaders nunca tocan SQL directo, lo que permite
 cambiar de motor sin reescribir la aplicación.
 
 ### `node:sqlite` en vez de `better-sqlite3`
+
 Módulo nativo del runtime: sin `node-gyp`, compila sin drama en `node:24-alpine`
 y no agrega dependencias. La API es síncrona y con prepared statements.
 
 ### Separación servidor/cliente
+
 Todo el que accede a la DB vive en archivos `*.server.ts`. El plugin
 `react-router:dot-server` los excluye del bundle del cliente; los loaders/actions
 se ejecutan siempre en el servidor. `pricing.ts` y `money.ts` son puros y
 compartidos (cliente + servidor).
 
 ### Dinero en centavos
+
 Las columnas `*_cents` (INTEGER) evitan errores de coma flotante. El formateo
 se centraliza en `formatARS()` (`Intl` `es-AR`, ARS, sin decimales).
 
 ### Pago manual
+
 No hay pasarela: la orden se crea `pending` y el admin la marca
 `confirmed → paid → shipped`. El cliente paga por transferencia/depósito.
 
@@ -62,6 +67,7 @@ No hay pasarela: la orden se crea `pending` y el admin la marca
   con CUIT validado por dígito verificador (`app/lib/cuit.server.ts`).
 
 ## Headers de seguridad
+
 El middleware de root agrega a todas las respuestas `X-Content-Type-Options`,
 `X-Frame-Options` y `Referrer-Policy` (ver `app/root.tsx`).
 
@@ -99,7 +105,19 @@ admin `confirmed` (stock + total) → `paid` (recibió transferencia/depósito) 
 2. ✅ Catálogo B2B (precios según rol, visibles para aprobados)
 3. ✅ Carrito + pedido (mínimo $ 10.000, pago manual)
 4. ✅ Panel admin (aprobar clientes, productos, pedidos)
-5. ⬜ Pulido y refinamientos
+5. ✅ Pulido y refinamientos
+
+## Calidad de código (Fase 5)
+
+- **ESLint** flat (`eslint.config.js`): `typescript-eslint` recommended +
+  `react-hooks` (reglas clásicas); el estilo deja de ser su responsabilidad
+  porque Prettier lo cubre (`eslint-config-prettier` al final).
+- **Prettier** (`.prettierrc.json`): double quotes, `semi`, `trailingComma: all`,
+  `printWidth: 100` (el estilo que ya usaba el repo).
+- Scripts: `npm run lint`, `npm run format` (check) y `npm run format:write`.
+- Componentes de UI compartidos en `app/components/ui/` (Card, Alert, FormError,
+  EmptyState, TableShell, TextLink, ButtonLink) y helpers puros en `app/lib/`
+  (`dates.ts`, `cuit.ts`, `order-ui.ts`) para eliminar clases y maps duplicados.
 
 ## Producción (react-router-serve)
 
