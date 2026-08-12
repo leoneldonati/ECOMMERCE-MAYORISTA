@@ -33,5 +33,19 @@ services:
       - data:/app/data
     command: ["node", "scripts/backup.ts", "--watch"]
 
+  # Job de bootstrap (docker compose run --rm seed): crea admin + catálogo en
+  # una base vacía. Usa la etapa dev (tsx + source) y chowna la base a uid 1000
+  # (el uid del usuario node) porque el seed corre como root.
+  seed:
+    build:
+      context: .
+      target: development-dependencies-env
+    image: despensa-online:dev
+    restart: "no"
+    env_file: .env
+    volumes:
+      - data:/app/data
+    command: ["sh", "-c", "npm run db:seed && chown -R 1000:1000 /app/data"]
+
 volumes:
   data:
