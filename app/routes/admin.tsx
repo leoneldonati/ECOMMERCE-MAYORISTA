@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from "react-router";
 import type { Route } from "./+types/admin";
 
+import { Page } from "~/components/ui/page";
 import { requireAdmin } from "~/lib/middleware.server";
 
 // Shell del panel de administración. El middleware de la ruta padre protege
@@ -22,7 +23,7 @@ const tabClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function AdminLayout() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <Page size="xl">
       <h1 className="mb-6 text-2xl font-bold">Panel de administración</h1>
       <nav
         aria-label="Secciones del panel"
@@ -35,6 +36,6 @@ export default function AdminLayout() {
         ))}
       </nav>
       <Outlet />
-    </div>
+    </Page>
   );
 }

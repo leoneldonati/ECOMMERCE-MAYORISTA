@@ -5,6 +5,7 @@ import { CsrfToken } from "~/components/csrf-token";
 import { SubmitButton } from "~/components/ui/button";
 import { FormError } from "~/components/ui/form-error";
 import { SelectField, TextField } from "~/components/ui/field";
+import { Page } from "~/components/ui/page";
 import { createLoginCookie, getCurrentUser } from "~/lib/auth.server";
 import { requireCsrf } from "~/lib/csrf.server";
 import { redirectWithFlash } from "~/lib/flash.server";
@@ -79,7 +80,7 @@ export default function Register({ actionData }: Route.ComponentProps) {
   const errors = (actionData?.errors as Record<string, string> | undefined) ?? {};
 
   return (
-    <div className="mx-auto max-w-md px-4 py-16">
+    <Page size="sm" pad="comfortable">
       <h1 className="mb-2 text-2xl font-bold">Solicitar cuenta mayorista</h1>
       <p className="mb-6 text-sm text-stone-600">
         Tu cuenta queda en revisión y la habilita un administrador antes de poder comprar.
@@ -125,6 +126,6 @@ export default function Register({ actionData }: Route.ComponentProps) {
         </SelectField>
         <SubmitButton pendingLabel="Enviando…">Solicitar cuenta</SubmitButton>
       </Form>
-    </div>
+    </Page>
   );
 }

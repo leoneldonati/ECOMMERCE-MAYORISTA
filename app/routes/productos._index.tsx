@@ -3,6 +3,7 @@ import type { Route } from "./+types/productos._index";
 
 import { ProductCard } from "~/components/product-card";
 import { EmptyState } from "~/components/ui/empty-state";
+import { Page } from "~/components/ui/page";
 import { TextLink } from "~/components/ui/text-link";
 import { listCategoriesWithActiveCounts } from "~/db/repos/categories.server";
 import { listProducts } from "~/db/repos/products.server";
@@ -57,7 +58,7 @@ export default function Catalog({ loaderData }: Route.ComponentProps) {
       : "rounded-full border border-stone-300 bg-white px-3 py-1 text-stone-700 transition-colors hover:border-brand-400";
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <Page size="xl">
       <header className="mb-6">
         <h1 className="text-2xl font-bold">Catálogo mayorista</h1>
         <p className="mt-1 text-sm text-stone-600">
@@ -109,6 +110,6 @@ export default function Catalog({ loaderData }: Route.ComponentProps) {
           ))}
         </div>
       )}
-    </div>
+    </Page>
   );
 }

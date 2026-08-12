@@ -3,6 +3,7 @@ import type { Route } from "./+types/_index";
 
 import { ButtonLink } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
+import { Page } from "~/components/ui/page";
 import { listCategories } from "~/db/repos/categories.server";
 
 export async function loader({}: Route.LoaderArgs) {
@@ -24,7 +25,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const { categories } = loaderData;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-16">
+    <Page size="xl" pad="comfortable">
       <section className="max-w-xl">
         <h1 className="text-4xl font-bold tracking-tight">
           Alimentos no perecederos <span className="text-brand-700">por mayor</span>
@@ -66,6 +67,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       <p className="mt-16 text-sm text-stone-400">
         Los precios mayoristas se muestran a los clientes con cuenta aprobada.
       </p>
-    </div>
+    </Page>
   );
 }

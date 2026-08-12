@@ -2,6 +2,7 @@ import type { Route } from "./+types/mi-cuenta";
 
 import { Alert } from "~/components/ui/alert";
 import { Card } from "~/components/ui/card";
+import { Page } from "~/components/ui/page";
 import { getContextUser, requireUser } from "~/lib/middleware.server";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -30,7 +31,7 @@ export function meta({}: Route.MetaArgs) {
 export default function Account({ loaderData }: Route.ComponentProps) {
   const { user } = loaderData;
   return (
-    <div className="mx-auto max-w-2xl px-4 py-16">
+    <Page size="md" pad="comfortable">
       <h1 className="mb-2 text-2xl font-bold">{user.business_name}</h1>
 
       {user.status === "pending" ? (
@@ -88,6 +89,6 @@ export default function Account({ loaderData }: Route.ComponentProps) {
           </div>
         ) : null}
       </Card>
-    </div>
+    </Page>
   );
 }

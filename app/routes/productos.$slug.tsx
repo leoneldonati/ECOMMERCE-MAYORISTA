@@ -5,6 +5,7 @@ import type { Route } from "./+types/productos.$slug";
 import { CsrfToken } from "~/components/csrf-token";
 import { FetcherSubmitButton } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
+import { Page } from "~/components/ui/page";
 import { TableShell } from "~/components/ui/table";
 import { PricesNotice } from "~/components/prices-notice";
 import { findProductBySlug } from "~/db/repos/products.server";
@@ -55,7 +56,7 @@ export default function ProductDetail({ loaderData }: Route.ComponentProps) {
   const feedback = (fetcher.data as { message?: string } | undefined)?.message;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <Page size="lg">
       <nav className="mb-6 text-sm text-stone-500">
         <Link to="/productos" className="transition-colors hover:text-brand-700">
           Catálogo
@@ -167,6 +168,6 @@ export default function ProductDetail({ loaderData }: Route.ComponentProps) {
           <PricesNotice status={pricesNotice} />
         </div>
       ) : null}
-    </div>
+    </Page>
   );
 }

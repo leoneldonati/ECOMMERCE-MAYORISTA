@@ -115,9 +115,11 @@ admin `confirmed` (stock + total) → `paid` (recibió transferencia/depósito) 
 - **Prettier** (`.prettierrc.json`): double quotes, `semi`, `trailingComma: all`,
   `printWidth: 100` (el estilo que ya usaba el repo).
 - Scripts: `npm run lint`, `npm run format` (check) y `npm run format:write`.
-- Componentes de UI compartidos en `app/components/ui/` (Card, Alert, FormError,
-  EmptyState, TableShell, TextLink, ButtonLink) y helpers puros en `app/lib/`
-  (`dates.ts`, `cuit.ts`, `order-ui.ts`) para eliminar clases y maps duplicados.
+- Componentes de UI compartidos en `app/components/ui/` (Page, Card, Alert,
+  FormError, EmptyState, TableShell, TextLink, ButtonLink) y helpers puros en
+  `app/lib/` (`dates.ts`, `cuit.ts`, `order-ui.ts`) para eliminar clases y
+  maps duplicados. `Page` unifica el contenedor de página (ancho según
+  `size` y espacio vertical según `pad`).
 
 ## Producción (react-router-serve)
 

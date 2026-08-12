@@ -9,6 +9,7 @@ import { EmptyState } from "~/components/ui/empty-state";
 import { TextareaField } from "~/components/ui/field";
 import { FormError } from "~/components/ui/form-error";
 import { Alert } from "~/components/ui/alert";
+import { Page } from "~/components/ui/page";
 import { TextLink } from "~/components/ui/text-link";
 import { errorResponse } from "~/lib/action-utils.server";
 import { listCartWithProducts, removeItem, upsertItem } from "~/db/repos/cart.server";
@@ -181,7 +182,7 @@ export default function Cart({ loaderData, actionData }: Route.ComponentProps) {
   const errors = (actionData as { errors?: Record<string, string> } | undefined)?.errors;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <Page size="lg">
       <h1 className="mb-6 text-2xl font-bold">Carrito</h1>
 
       {lines.length === 0 ? (
@@ -235,6 +236,6 @@ export default function Cart({ loaderData, actionData }: Route.ComponentProps) {
           </Card>
         </>
       )}
-    </div>
+    </Page>
   );
 }

@@ -5,6 +5,7 @@ import { CsrfToken } from "~/components/csrf-token";
 import { SubmitButton } from "~/components/ui/button";
 import { FormError } from "~/components/ui/form-error";
 import { TextField } from "~/components/ui/field";
+import { Page } from "~/components/ui/page";
 import { TextLink } from "~/components/ui/text-link";
 import { createLoginCookie, getCurrentUser } from "~/lib/auth.server";
 import { requireCsrf } from "~/lib/csrf.server";
@@ -71,7 +72,7 @@ export function meta({}: Route.MetaArgs) {
 export default function Login({ actionData }: Route.ComponentProps) {
   const errors = (actionData?.errors ?? {}) as Record<string, string>;
   return (
-    <div className="mx-auto flex max-w-md flex-col px-4 py-16">
+    <Page size="sm" pad="comfortable" className="flex flex-col">
       <h1 className="mb-2 text-2xl font-bold">Ingresar</h1>
       <p className="mb-6 text-sm text-stone-600">Entrá con el email de tu cuenta mayorista.</p>
       <FormError className="mb-4">{errors._form}</FormError>
@@ -98,6 +99,6 @@ export default function Login({ actionData }: Route.ComponentProps) {
       <p className="mt-6 text-sm text-stone-600">
         ¿No tenés cuenta? <TextLink to="/registro">Solicitá tu cuenta mayorista</TextLink>
       </p>
-    </div>
+    </Page>
   );
 }
