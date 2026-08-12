@@ -111,6 +111,20 @@ Detalles del `compose.yaml`:
 - Sidecar `backup`: snapshot diario automático a `data/backups/` con rotación.
 - El container corre con **usuario no-root** (entrypoint con `su-exec`).
 
+### 3.1. Bootstrap: crear admin y catálogo
+
+La base arranca vacía (solo migraciones). Para popularla con el catálogo demo y
+el usuario admin, ejecutá **una sola vez** el servicio de seed:
+
+```bash
+sudo docker compose run --rm seed
+```
+
+Esto corre `npm run db:seed` (idempotente: no duplica si ya hay datos) y
+asegura que los archivos creados sean propiedad del usuario `node` (uid 1000).
+Después, refrescá la app (`sudo docker compose restart app`) o navegá
+directamente: la base ya tiene el catálogo y las cuentas demo.
+
 ### 4. Nginx + TLS (Let's Encrypt)
 
 Instalá Nginx y certbot, y usá una configuración como esta:
