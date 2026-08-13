@@ -24,9 +24,11 @@ pagos manuales (transferencia/depósito).
 
 - `app/db/*`, `app/lib/*.server.ts` son SOLO servidor (sufijo `.server.ts`).
   Importarlos únicamente desde loaders/actions u otros `.server.ts`.
-- `app/lib/pricing.ts`, `money.ts`, `dates.ts`, `cuit.ts` y `order-ui.ts` son
-  compartidos (cliente + servidor): código puro, sin acceso a DB. Lo mismo
-  aplica a `app/components/ui/*` (componentes sin importaciones `.server`).
+- `app/lib/pricing.ts`, `money.ts`, `dates.ts`, `cuit.ts`, `order-ui.ts` y
+  `notify-messages.ts` son compartidos (cliente + servidor): código puro, sin
+  acceso a DB ni a `process.env`. Lo mismo aplica a `app/components/ui/*`
+  (componentes sin importaciones `.server`). El envío (IO/red) sí va en
+  `notify.server.ts` (solo servidor).
 - `app/db/types.ts` solo tipos (sin runtime); importar siempre con `import type`.
 
 ## Comandos

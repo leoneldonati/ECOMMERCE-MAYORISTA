@@ -83,6 +83,13 @@ cambia aunque el catálogo se modifique.
   "Pago declarado"), y tiene un atajo **"Confirmar y marcar pagado"** que
   descuenta el stock (confirmar) y deja la orden `paid` en una sola acción.
 
+### Notificaciones al admin (Telegram)
+
+Al crear una orden y al registrar un aviso de pago se envía un mensaje al admin
+por Telegram (`notify.server.ts`). El envío es con timeout y nunca rompe la
+acción; sin `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` es no-op. Los textos se
+construyen en `notify-messages.ts` (puro, con `formatARS` y `formatDateTime`).
+
 ## Carrito y checkout (Fase 3)
 
 - El carrito es **server-side** (`cart_items` por usuario): el server es la fuente

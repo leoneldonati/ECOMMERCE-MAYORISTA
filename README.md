@@ -63,15 +63,46 @@ arranque.**
 
 Ver `.env.example`. Las usadas por la aplicación:
 
-| Variable                                   | Default       | Uso                               |
-| ------------------------------------------ | ------------- | --------------------------------- |
-| `DATABASE_PATH`                            | `data/app.db` | Ruta del archivo SQLite           |
-| `PORT`                                     | `3000`        | Puerto del server                 |
-| `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | demo          | Credenciales del admin del seed   |
-| `BACKUP_RETENTION_DAYS`                    | `7`           | Días que se conservan los backups |
+| Variable                                   | Default       | Uso                                              |
+| ------------------------------------------ | ------------- | ------------------------------------------------ |
+| `DATABASE_PATH`                            | `data/app.db` | Ruta del archivo SQLite                          |
+| `PORT`                                     | `3000`        | Puerto del server                                |
+| `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | demo          | Credenciales del admin del seed                  |
+| `BACKUP_RETENTION_DAYS`                    | `7`           | Días que se conservan los backups                |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`  | (ninguno)     | Notificaciones al admin por Telegram (ver abajo) |
+| `APP_URL`                                  | (ninguno)     | Dominio público, para links clickeables          |
 
 `NODE_ENV` se setea en el arranque del README/deploy: en producción controla
 cookies `Secure` y el modo dev/prod de React.
+
+## Notificaciones al admin (Telegram)
+
+El admin recibe un mensaje de Telegram cuando un cliente **confirma un pedido**
+y cuando **avisa que ya transfirió** el pago. Sin `TELEGRAM_BOT_TOKEN` y
+`TELEGRAM_CHAT_ID` configurados, las notificaciones simplemente no se envían.
+
+Configuración (una vez):
+
+1. En Telegram, hablá con [@BotFather](https://t.me/botfather) y creá un bot con
+   `/newbot`; te da un **token**.
+2. Escribile `/start` a tu bot (para que exista el chat y obtener el id).
+3. Obtené tu `chat_id` (el número del chat con el bot).
+4. Seteá las variables en `.env`:
+
+   ```
+   TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
+   TELEGRAM_CHAT_ID=123456789
+   APP_URL=https://despensa.com.ar
+   ```
+
+5. Probá con un mensaje de verificación:
+
+   ```bash
+   npm run notify:test
+   ```
+
+> `APP_URL` se usa para que el enlace "Ver pedido" del mensaje sea clickeable en
+> Telegram; si no lo seteás, el mensaje llega sin enlace.
 
 ## Deploy en un VPS (Docker Compose)
 
