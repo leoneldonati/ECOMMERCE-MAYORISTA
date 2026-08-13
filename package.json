@@ -14,7 +14,8 @@
     "db:seed": "tsx scripts/db.seed.ts",
     "db:reset": "tsx scripts/db.reset.ts",
     "db:setup": "npm run db:migrate && npm run db:seed",
-    "db:backup": "tsx scripts/backup.ts"
+    "db:backup": "tsx scripts/backup.ts",
+    "notify:test": "tsx scripts/notify.test.ts"
   },
   "dependencies": {
     "@react-router/fs-routes": "^8.3.0",

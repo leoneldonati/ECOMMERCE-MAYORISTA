@@ -12,6 +12,7 @@ import { Alert } from "~/components/ui/alert";
 import { Page } from "~/components/ui/page";
 import { TextLink } from "~/components/ui/text-link";
 import { errorResponse } from "~/lib/action-utils.server";
+import { notifyOrderCreated } from "~/lib/notify.server";
 import { listCartWithProducts, removeItem, upsertItem } from "~/db/repos/cart.server";
 import { createOrderFromCart, OrderError } from "~/db/repos/orders.server";
 import { getContextUser, requireApproved } from "~/lib/middleware.server";
@@ -97,6 +98,12 @@ export async function action({ request, context }: Route.ActionArgs) {
     const notes = String(formData.get("notes") ?? "").trim() || undefined;
     try {
       const order = createOrderFromCart(user.id, notes);
+      // Notificar al admin; la notificación nunca debe romper el pedido.
+      try {
+        await notifyOrderCreated(order, user.business_name, order.items.length);
+      } catch (error) {
+        console.error(`[notify] ${error instanceof Error ? error.message : error}`);
+      }
       return redirect(`/pedidos/${order.id}`);
     } catch (error) {
       if (error instanceof OrderError) return errorResponse(error.message, 400);

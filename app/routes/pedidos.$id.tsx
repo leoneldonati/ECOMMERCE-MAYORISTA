@@ -9,6 +9,7 @@ import { Badge } from "~/components/ui/badge";
 import { TextField, TextareaField } from "~/components/ui/field";
 import { FormError } from "~/components/ui/form-error";
 import { errorResponse } from "~/lib/action-utils.server";
+import { notifyPaymentReceived } from "~/lib/notify.server";
 import { findOrderWithItems, notifyPayment, OrderError } from "~/db/repos/orders.server";
 import { requireCsrf } from "~/lib/csrf.server";
 import { formatDateTime } from "~/lib/dates";
@@ -61,6 +62,15 @@ export async function action({ request, params, context }: Route.ActionArgs) {
         reference: parsed.data.reference,
         message: parsed.data.message,
       });
+      // Notificar al admin; la notificación nunca debe romper el aviso.
+      try {
+        await notifyPaymentReceived(order, {
+          reference: parsed.data.reference,
+          message: parsed.data.message,
+        });
+      } catch (error) {
+        console.error(`[notify] ${error instanceof Error ? error.message : error}`);
+      }
     } catch (error) {
       if (error instanceof OrderError) return errorResponse(error.message, 400);
       throw error;
