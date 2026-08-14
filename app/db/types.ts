@@ -3,7 +3,6 @@
 
 export type Role = "admin" | "customer";
 export type UserStatus = "pending" | "approved" | "rejected";
-export type CustomerType = "revendedor" | "almacen" | "distribuidor" | "otro";
 
 export interface User {
   id: number;
@@ -11,19 +10,13 @@ export interface User {
   password_hash: string;
   role: Role;
   status: UserStatus;
-  /** Razón social */
-  business_name: string;
-  /** CUIT de 11 dígitos, sin separadores */
-  cuit: string;
-  contact_name: string | null;
+  /** Nombre del cliente */
+  name: string;
   phone: string | null;
   province: string | null;
   address: string | null;
-  customer_type: CustomerType | null;
   created_at: string;
   updated_at: string;
-  approved_at: string | null;
-  rejected_at: string | null;
 }
 
 /** Usuario sin el hash de contraseña (seguro para exponer) */
@@ -54,12 +47,16 @@ export interface Product {
   slug: string;
   name: string;
   description: string | null;
-  /** Unidad de venta mayorista: caja, bulto, pack, kilo... */
-  unit_label: string;
-  /** Presentación, ej: "24 x 1kg" */
-  package_size: string | null;
-  /** Stock en unidades de venta (cajas) */
+  /** Precio único por unidad de venta en centavos ARS */
+  price_cents: number;
+  /** Imagen del producto (URL externa) */
+  image_url: string | null;
+  /** Stock en unidades de venta (solo si no es bajo pedido) */
   stock: number;
+  /** Días de producción cuando `made_to_order = 1` */
+  lead_time_days: number | null;
+  /** 1 = se imprime bajo pedido (sin tope de stock); 0 = en stock */
+  made_to_order: number;
   active: number;
   /** Joins de catálogo (no viven en la tabla) */
   category_name?: string;
@@ -68,21 +65,8 @@ export interface Product {
   updated_at: string;
 }
 
-export interface PriceTier {
-  id: number;
-  product_id: number;
-  /** Cantidad mínima de unidades de venta para aplicar esta escala */
-  min_qty: number;
-  /** Precio por unidad de venta en centavos ARS */
-  price_cents: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ProductWithTiers extends Product {
-  /** Escalas ordenadas por min_qty */
-  tiers: PriceTier[];
-}
+/** Estado de disponibilidad de un producto para la UI. */
+export type Availability = "in_stock" | "made_to_order" | "out_of_stock";
 
 export type OrderStatus = "pending" | "confirmed" | "paid" | "shipped" | "cancelled";
 
@@ -113,10 +97,9 @@ export interface OrderItem {
   product_id: number;
   /** Snapshot de catálogo: la orden no cambia aunque el producto lo haga */
   product_name: string;
-  unit_label: string;
-  package_size: string | null;
+  image_url: string | null;
   quantity: number;
-  /** Precio por unidad capturado al crear la orden (incluye la escala aplicada) */
+  /** Precio por unidad capturado al crear la orden */
   unit_price_cents: number;
   subtotal_cents: number;
 }

@@ -1,21 +1,14 @@
 import { getDb } from "../client.server";
 import { withTransaction } from "../transaction.server";
 import type { Order, OrderItem, OrderStatus } from "../types";
-import { lineMinQty, lineUnitPrice, MIN_ORDER_CENTS } from "../../lib/orders";
-import { formatARS } from "../../lib/money";
+import { lineSubtotal } from "../../lib/orders";
 import { clearCart, listCartWithProducts } from "./cart.server";
 
-// Pedidos del cliente. Al crear la orden se congelan snapshots (nombre, unidad,
-// presentación, precio) en order_items: el pedido no cambia aunque el catálogo sí.
+// Pedidos del cliente. Al crear la orden se congelan snapshots (nombre, imagen,
+// precio) en order_items: el pedido no cambia aunque el catálogo sí.
 
 export type OrderErrorCode =
-  | "empty_cart"
-  | "line_below_min"
-  | "insufficient_stock"
-  | "below_min_order"
-  | "invalid_transition"
-  | "not_found"
-  | "not_pending";
+  "empty_cart" | "insufficient_stock" | "invalid_transition" | "not_found" | "not_pending";
 
 export class OrderError extends Error {
   readonly code: OrderErrorCode;
@@ -50,8 +43,7 @@ export function createOrderFromCart(userId: number, notes?: string): OrderWithIt
     interface ItemInput {
       productId: number;
       name: string;
-      unitLabel: string;
-      packageSize: string | null;
+      imageUrl: string | null;
       quantity: number;
       unitPriceCents: number;
       subtotalCents: number;
@@ -61,36 +53,26 @@ export function createOrderFromCart(userId: number, notes?: string): OrderWithIt
 
     for (const line of lines) {
       const { product, quantity } = line;
-      const unitPrice = lineUnitPrice(product.tiers, quantity);
-      if (unitPrice === null) {
-        const min = lineMinQty(product.tiers);
-        throw new OrderError(
-          "line_below_min",
-          `"${product.name}" requiere un mínimo de ${min ?? "?"} unidades por línea.`,
-        );
-      }
-      if (quantity > product.stock) {
+      // Precio único por unidad; la disponibilidad se valida según el modo:
+      // los productos bajo pedido se venden sin tope de stock, los de stock
+      // no pueden superar el disponible.
+      if (!product.made_to_order && quantity > product.stock) {
         throw new OrderError(
           "insufficient_stock",
           `Stock insuficiente de "${product.name}" (disponible: ${product.stock}).`,
         );
       }
 
-      const subtotal = unitPrice * quantity;
+      const subtotal = lineSubtotal(product.price_cents, quantity);
       total += subtotal;
       items.push({
         productId: product.id,
         name: product.name,
-        unitLabel: product.unit_label,
-        packageSize: product.package_size,
+        imageUrl: product.image_url,
         quantity,
-        unitPriceCents: unitPrice,
+        unitPriceCents: product.price_cents,
         subtotalCents: subtotal,
       });
-    }
-
-    if (total < MIN_ORDER_CENTS) {
-      throw new OrderError("below_min_order", `El pedido mínimo es ${formatARS(MIN_ORDER_CENTS)}.`);
     }
 
     const now = new Date().toISOString();
@@ -104,17 +86,16 @@ export function createOrderFromCart(userId: number, notes?: string): OrderWithIt
 
     const insertItem = db.prepare(
       `INSERT INTO order_items
-        (order_id, product_id, product_name, unit_label, package_size, quantity,
+        (order_id, product_id, product_name, image_url, quantity,
          unit_price_cents, subtotal_cents)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     );
     for (const item of items) {
       insertItem.run(
         orderId,
         item.productId,
         item.name,
-        item.unitLabel,
-        item.packageSize,
+        item.imageUrl,
         item.quantity,
         item.unitPriceCents,
         item.subtotalCents,
@@ -170,18 +151,18 @@ export function notifyPayment(
 }
 
 export interface OrderWithUser extends Order {
-  business_name: string;
+  name: string;
   email: string;
 }
 
-/** Pedidos con datos del cliente (razón social y email). Filtra por estado si se pasa. */
+/** Pedidos con datos del cliente (nombre y email). Filtra por estado si se pasa. */
 export function listOrdersWithUser(status?: OrderStatus): OrderWithUser[] {
   const db = getDb();
   const sql = status
-    ? `SELECT o.*, u.business_name, u.email
+    ? `SELECT o.*, u.name, u.email
        FROM orders o JOIN users u ON u.id = o.user_id
        WHERE o.status = ? ORDER BY o.created_at DESC`
-    : `SELECT o.*, u.business_name, u.email
+    : `SELECT o.*, u.name, u.email
        FROM orders o JOIN users u ON u.id = o.user_id
        ORDER BY o.created_at DESC`;
   return db.prepare(sql).all(...(status ? [status] : [])) as unknown as OrderWithUser[];
@@ -236,11 +217,14 @@ export function transitionOrderStatus(orderId: number, target: OrderStatus): Ord
       const now = new Date().toISOString();
       for (const item of items) {
         const product = db
-          .prepare("SELECT stock FROM products WHERE id = ?")
-          .get(item.product_id) as { stock: number } | undefined;
+          .prepare("SELECT stock, made_to_order FROM products WHERE id = ?")
+          .get(item.product_id) as { stock: number; made_to_order: number } | undefined;
         if (!product) {
           throw new OrderError("not_found", `El producto "${item.product_name}" ya no existe.`);
         }
+        // Los productos bajo pedido no descuentan ni limitan stock: se imprimen
+        // por encargo y el stock solo se controla para los de depósito.
+        if (product.made_to_order) continue;
         if (item.quantity > product.stock) {
           throw new OrderError(
             "insufficient_stock",

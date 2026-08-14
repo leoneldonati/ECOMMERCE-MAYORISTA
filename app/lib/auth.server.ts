@@ -7,7 +7,7 @@ import type { PublicUser } from "~/db/types";
 // resuelve contra la tabla `sessions` en cada request. Así el estado y rol del
 // usuario siempre son los vigentes y el admin puede revocar sesiones.
 
-const SESSION_COOKIE_NAME = "mayorista_session";
+const SESSION_COOKIE_NAME = "impreso_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 días
 
 const sessionCookie = createCookie(SESSION_COOKIE_NAME, {

@@ -12,19 +12,16 @@ Convenciones:
 
 ## `users`
 
-| Columna                                   | Tipo         | Notas                                                 |
-| ----------------------------------------- | ------------ | ----------------------------------------------------- |
-| id                                        | INTEGER PK   |                                                       |
-| email                                     | TEXT, UNIQUE | `COLLATE NOCASE`                                      |
-| password_hash                             | TEXT         | scrypt, formato `scrypt$salt$hash`                    |
-| role                                      | TEXT         | `admin` \| `customer`                                 |
-| status                                    | TEXT         | `pending` \| `approved` \| `rejected`                 |
-| business_name                             | TEXT         | Razón social                                          |
-| cuit                                      | TEXT, UNIQUE | 11 dígitos, sin guiones                               |
-| contact_name / phone / province / address | TEXT NULL    |                                                       |
-| customer_type                             | TEXT NULL    | `revendedor` \| `almacen` \| `distribuidor` \| `otro` |
-| created_at / updated_at                   | TEXT         |                                                       |
-| approved_at / rejected_at                 | TEXT NULL    | Timestamp de la decisión del admin                    |
+| Columna                    | Tipo         | Notas                                       |
+| -------------------------- | ------------ | ------------------------------------------- |
+| id                         | INTEGER PK   |                                             |
+| email                      | TEXT, UNIQUE | `COLLATE NOCASE`                            |
+| password_hash              | TEXT         | scrypt, formato `scrypt$salt$hash`          |
+| role                       | TEXT         | `admin` \| `customer`                       |
+| status                     | TEXT         | `approved` por defecto (B2C sin aprobación) |
+| name                       | TEXT         | Nombre del cliente                          |
+| phone / province / address | TEXT NULL    | Datos para coordinar la entrega             |
+| created_at / updated_at    | TEXT         |                                             |
 
 ## `sessions`
 
@@ -48,32 +45,26 @@ Convenciones:
 
 ## `products`
 
-| Columna                 | Tipo                    | Notas                                            |
-| ----------------------- | ----------------------- | ------------------------------------------------ |
-| id                      | INTEGER PK              |                                                  |
-| category_id             | INTEGER FK → categories |                                                  |
-| slug                    | TEXT UNIQUE             |                                                  |
-| name                    | TEXT                    |                                                  |
-| description             | TEXT NULL               |                                                  |
-| unit_label              | TEXT                    | Unidad de venta mayorista: `caja`, `bulto`, etc. |
-| package_size            | TEXT NULL               | Presentación, ej. `24 x 1 kg`                    |
-| stock                   | INTEGER                 | En unidades de venta (cajas), `>= 0`             |
-| active                  | INTEGER                 | 0/1                                              |
-| created_at / updated_at | TEXT                    |                                                  |
+| Columna                 | Tipo                    | Notas                                               |
+| ----------------------- | ----------------------- | --------------------------------------------------- |
+| id                      | INTEGER PK              |                                                     |
+| category_id             | INTEGER FK → categories |                                                     |
+| slug                    | TEXT UNIQUE             |                                                     |
+| name                    | TEXT                    |                                                     |
+| description             | TEXT NULL               |                                                     |
+| price_cents             | INTEGER                 | Precio único por unidad de venta (centavos)         |
+| image_url               | TEXT NULL               | Imagen del producto (URL externa)                   |
+| stock                   | INTEGER                 | Unidades disponibles (en stock), `>= 0`             |
+| lead_time_days          | INTEGER NULL            | Días de producción (solo si `made_to_order`)        |
+| made_to_order           | INTEGER                 | 0/1: 1 = se imprime bajo pedido (sin tope de stock) |
+| active                  | INTEGER                 | 0/1                                                 |
+| created_at / updated_at | TEXT                    |                                                     |
 
-## `price_tiers` (escalas de precio)
+Semántica de disponibilidad:
 
-| Columna                 | Tipo                            | Notas                                             |
-| ----------------------- | ------------------------------- | ------------------------------------------------- |
-| id                      | INTEGER PK                      |                                                   |
-| product_id              | INTEGER FK → products (CASCADE) |                                                   |
-| min_qty                 | INTEGER                         | Mínimo de unidades para aplicar la escala, `>= 1` |
-| price_cents             | INTEGER                         | Precio por unidad de venta, `>= 0`                |
-| created_at / updated_at | TEXT                            |                                                   |
-
-`UNIQUE (product_id, min_qty)`: un solo precio por punto de corte.
-Regla de aplicación (ver `app/lib/pricing.ts`): gana la escala con mayor
-`min_qty` que la cantidad comprada; si no hay escala alcanzable, no se puede comprar.
+- `made_to_order = 1` → "Bajo pedido · N días" (se vende sin límite de stock).
+- `made_to_order = 0` y `stock > 0` → "En stock (N)".
+- `made_to_order = 0` y `stock = 0` → "Agotado" (no vendible).
 
 ## `orders`
 
@@ -92,17 +83,16 @@ Regla de aplicación (ver `app/lib/pricing.ts`): gana la escala con mayor
 
 ## `order_items` (líneas de pedido)
 
-| Columna          | Tipo                          | Notas                                           |
-| ---------------- | ----------------------------- | ----------------------------------------------- |
-| id               | INTEGER PK                    |                                                 |
-| order_id         | INTEGER FK → orders (CASCADE) |                                                 |
-| product_id       | INTEGER FK → products         | Sin CASCADE: histórico inmutable                |
-| product_name     | TEXT                          | Snapshot del nombre al comprar                  |
-| unit_label       | TEXT                          | Snapshot de la unidad de venta                  |
-| package_size     | TEXT NULL                     | Snapshot de la presentación                     |
-| quantity         | INTEGER                       | `> 0`                                           |
-| unit_price_cents | INTEGER                       | Precio por unidad incluyendo la escala aplicada |
-| subtotal_cents   | INTEGER                       | `unit_price_cents * quantity`                   |
+| Columna          | Tipo                          | Notas                                         |
+| ---------------- | ----------------------------- | --------------------------------------------- |
+| id               | INTEGER PK                    |                                               |
+| order_id         | INTEGER FK → orders (CASCADE) |                                               |
+| product_id       | INTEGER FK → products         | Sin CASCADE: histórico inmutable              |
+| product_name     | TEXT                          | Snapshot del nombre al comprar                |
+| image_url        | TEXT NULL                     | Snapshot de la imagen del producto            |
+| quantity         | INTEGER                       | `> 0`                                         |
+| unit_price_cents | INTEGER                       | Precio por unidad capturado al crear la orden |
+| subtotal_cents   | INTEGER                       | `unit_price_cents * quantity`                 |
 
 ## `cart_items` (carrito por usuario)
 
@@ -133,7 +123,6 @@ las ejecuta en orden dentro de transacciones.
 - `users`: status, role
 - `sessions`: user_id, expires_at
 - `products`: category_id, active
-- `price_tiers`: product_id
 - `orders`: user_id, status
 - `order_items`: order_id
 - `cart_items`: user_id

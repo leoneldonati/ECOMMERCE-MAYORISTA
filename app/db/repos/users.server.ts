@@ -1,5 +1,5 @@
 import { getDb } from "../client.server";
-import type { CustomerType, PublicUser, Role, User, UserStatus } from "../types";
+import type { PublicUser, Role, User, UserStatus } from "../types";
 
 // Repositorio de usuarios. Devuelve filas completas; la capa de auth
 // expone `PublicUser` (sin password_hash) hacia las rutas.
@@ -7,39 +7,33 @@ import type { CustomerType, PublicUser, Role, User, UserStatus } from "../types"
 export interface CreateUserInput {
   email: string;
   passwordHash: string;
-  businessName: string;
-  cuit: string;
-  contactName?: string;
+  name: string;
   phone?: string;
   province?: string;
   address?: string;
-  customerType?: CustomerType;
   role?: Role;
   status?: UserStatus;
 }
 
-/** Crea un cliente. Por defecto queda `customer` / `pending` esperando aprobación. */
+/** Crea un cliente. Por defecto queda `customer` / `approved` (B2C sin aprobación). */
 export function createUser(input: CreateUserInput): User {
   const db = getDb();
   const now = new Date().toISOString();
   const result = db
     .prepare(
       `INSERT INTO users
-        (email, password_hash, role, status, business_name, cuit, contact_name, phone, province, address, customer_type, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (email, password_hash, role, status, name, phone, province, address, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       input.email,
       input.passwordHash,
       input.role ?? "customer",
-      input.status ?? "pending",
-      input.businessName,
-      input.cuit,
-      input.contactName ?? null,
+      input.status ?? "approved",
+      input.name,
       input.phone ?? null,
       input.province ?? null,
       input.address ?? null,
-      input.customerType ?? null,
       now,
       now,
     );
@@ -56,26 +50,8 @@ export function findUserByEmail(email: string): User | undefined {
     User | undefined;
 }
 
-export function listUsers(status?: UserStatus): User[] {
-  if (status) {
-    return getDb()
-      .prepare("SELECT * FROM users WHERE status = ? ORDER BY created_at DESC")
-      .all(status) as unknown as User[];
-  }
+export function listUsers(): User[] {
   return getDb().prepare("SELECT * FROM users ORDER BY created_at DESC").all() as unknown as User[];
-}
-
-/** Cambia el estado de aprobación, registrando el timestamp correspondiente. */
-export function setUserStatus(id: number, status: UserStatus): User | undefined {
-  const now = new Date().toISOString();
-  getDb()
-    .prepare(
-      `UPDATE users
-       SET status = ?, approved_at = ?, rejected_at = ?, updated_at = ?
-       WHERE id = ?`,
-    )
-    .run(status, status === "approved" ? now : null, status === "rejected" ? now : null, now, id);
-  return findUserById(id);
 }
 
 /** Elimina la información sensible y devuelve el usuario seguro para exponer. */

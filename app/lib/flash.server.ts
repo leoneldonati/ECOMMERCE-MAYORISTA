@@ -4,7 +4,7 @@ import { createCookie, redirect } from "react-router";
 // Se guarda en una cookie efímera (60s) que el root loader lee y borra en el
 // primer request, así no resucita con un refresh ni con navegaciones normales.
 
-const flashCookie = createCookie("despensa_flash", {
+const flashCookie = createCookie("impreso_flash", {
   httpOnly: true,
   sameSite: "lax",
   secure: process.env.NODE_ENV === "production",

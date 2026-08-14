@@ -137,7 +137,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   return (
     <main className="container mx-auto flex flex-col items-center px-4 py-20 text-center">
       <p className="mb-2 text-sm font-bold tracking-tight text-brand-700">
-        Despensa<span className="text-stone-900">Online</span>
+        Impreso<span className="text-stone-900">Online</span>
       </p>
       <h1 className="text-3xl font-bold">{message}</h1>
       <p className="mt-2 max-w-md text-stone-600">{details}</p>

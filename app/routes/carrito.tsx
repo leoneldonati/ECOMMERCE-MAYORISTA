@@ -3,56 +3,45 @@ import type { Route } from "./+types/carrito";
 
 import { CsrfToken } from "~/components/csrf-token";
 import { SubmitButton } from "~/components/ui/button";
-import { Badge } from "~/components/ui/badge";
 import { Card } from "~/components/ui/card";
 import { EmptyState } from "~/components/ui/empty-state";
 import { TextareaField } from "~/components/ui/field";
 import { FormError } from "~/components/ui/form-error";
-import { Alert } from "~/components/ui/alert";
 import { Page } from "~/components/ui/page";
 import { TextLink } from "~/components/ui/text-link";
 import { errorResponse } from "~/lib/action-utils.server";
 import { notifyOrderCreated } from "~/lib/notify.server";
 import { listCartWithProducts, removeItem, upsertItem } from "~/db/repos/cart.server";
 import { createOrderFromCart, OrderError } from "~/db/repos/orders.server";
-import { getContextUser, requireApproved } from "~/lib/middleware.server";
+import { getContextUser, requireUser } from "~/lib/middleware.server";
 import { requireCsrf } from "~/lib/csrf.server";
 import { formatARS } from "~/lib/money";
-import {
-  computeCartTotal,
-  lineMinQty,
-  lineUnitPrice,
-  MIN_ORDER_CENTS,
-  shortfallToMin,
-} from "~/lib/orders";
+import { computeCartTotal } from "~/lib/orders";
 
-export const middleware: Route.MiddlewareFunction[] = [requireApproved];
+export const middleware: Route.MiddlewareFunction[] = [requireUser];
 
 export async function loader({ context }: Route.LoaderArgs) {
   const user = getContextUser(context);
   const lines = listCartWithProducts(user.id);
 
-  const viewLines = lines.map(({ product_id, quantity, product }) => {
-    const unitPrice = lineUnitPrice(product.tiers, quantity);
-    return {
-      product_id,
-      quantity,
-      slug: product.slug,
-      name: product.name,
-      package_size: product.package_size,
-      unit_label: product.unit_label,
-      stock: product.stock,
-      unitPrice,
-      subtotal: unitPrice !== null ? unitPrice * quantity : null,
-      belowMin: unitPrice === null,
-      minQty: lineMinQty(product.tiers),
-    };
-  });
+  const viewLines = lines.map(({ product_id, quantity, product }) => ({
+    product_id,
+    quantity,
+    slug: product.slug,
+    name: product.name,
+    image_url: product.image_url,
+    priceCents: product.price_cents,
+    subtotal: product.price_cents * quantity,
+    // El tope de cantidad solo aplica a productos de stock; los de bajo pedido
+    // se imprimen por encargo y no tienen límite.
+    madeToOrder: product.made_to_order === 1,
+    stock: product.stock,
+  }));
 
   const total = computeCartTotal(
-    lines.map((line) => ({ quantity: line.quantity, tiers: line.product.tiers })),
+    lines.map((line) => ({ quantity: line.quantity, priceCents: line.product.price_cents })),
   );
-  return { lines: viewLines, total, shortfall: shortfallToMin(total) };
+  return { lines: viewLines, total };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -89,7 +78,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     const productId = Number(formData.get("productId"));
     if (Number.isInteger(productId) && productId > 0) {
       removeItem(user.id, productId);
-      // Si no quedan líneas, ordenará el estado vacío.
     }
     return data({ ok: true });
   }
@@ -100,7 +88,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       const order = createOrderFromCart(user.id, notes);
       // Notificar al admin; la notificación nunca debe romper el pedido.
       try {
-        await notifyOrderCreated(order, user.business_name, order.items.length);
+        await notifyOrderCreated(order, user.name, order.items.length);
       } catch (error) {
         console.error(`[notify] ${error instanceof Error ? error.message : error}`);
       }
@@ -115,7 +103,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Carrito — Despensa Online" }];
+  return [{ title: "Carrito — Impreso Online" }];
 }
 
 type CartViewLine = Awaited<ReturnType<typeof loader>>["lines"][number];
@@ -123,6 +111,8 @@ type CartViewLine = Awaited<ReturnType<typeof loader>>["lines"][number];
 function CartLineRow({ line }: { line: CartViewLine }) {
   const fetcher = useFetcher();
   const busy = fetcher.state !== "idle";
+  // El tope de stock solo aplica a productos de depósito (no bajo pedido).
+  const atMax = !line.madeToOrder && line.quantity >= line.stock;
 
   const qtyForm = (nextQuantity: number, disabledMax = false) => (
     <fetcher.Form method="post" action="/carrito" className="inline-flex items-center gap-2">
@@ -141,32 +131,35 @@ function CartLineRow({ line }: { line: CartViewLine }) {
   );
 
   return (
-    <li className="border-t border-stone-100 p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <Link to={`/productos/${line.slug}`} className="font-medium hover:text-brand-700">
+    <li className="flex items-center justify-between gap-4 border-t border-stone-100 p-4">
+      <div className="flex min-w-0 items-center gap-3">
+        {line.image_url ? (
+          <img
+            src={line.image_url}
+            alt={line.name}
+            className="h-14 w-14 rounded bg-stone-100 object-cover"
+          />
+        ) : null}
+        <div className="min-w-0">
+          <Link
+            to={`/productos/${line.slug}`}
+            className="block truncate font-medium hover:text-brand-700"
+          >
             {line.name}
           </Link>
           <p className="text-sm text-stone-500">
-            {line.package_size} · {line.unit_label}
+            {formatARS(line.priceCents)} x {line.quantity}
           </p>
         </div>
-        {line.belowMin ? (
-          <Badge tone="warning">Mínimo {line.minQty} por línea</Badge>
-        ) : (
-          <span className="font-semibold">{formatARS(line.subtotal!)}</span>
-        )}
       </div>
 
-      <div className="mt-3 flex items-center justify-between">
+      <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           {qtyForm(line.quantity - 1)}
           <span className="w-8 text-center text-sm font-medium">{line.quantity}</span>
-          {qtyForm(line.quantity + 1, line.quantity >= line.stock)}
-          <span className="ml-2 text-sm text-stone-500">
-            {line.unitPrice !== null ? `${formatARS(line.unitPrice)} x unidad` : ""}
-          </span>
+          {qtyForm(line.quantity + 1, atMax)}
         </div>
+        <span className="w-24 text-right font-semibold">{formatARS(line.subtotal)}</span>
         <fetcher.Form method="post" action="/carrito">
           <input type="hidden" name="intent" value="remove" />
           <input type="hidden" name="productId" value={line.product_id} />
@@ -185,7 +178,7 @@ function CartLineRow({ line }: { line: CartViewLine }) {
 }
 
 export default function Cart({ loaderData, actionData }: Route.ComponentProps) {
-  const { lines, total, shortfall } = loaderData;
+  const { lines, total } = loaderData;
   const errors = (actionData as { errors?: Record<string, string> } | undefined)?.errors;
 
   return (
@@ -216,13 +209,6 @@ export default function Cart({ loaderData, actionData }: Route.ComponentProps) {
             <span className="text-xl font-bold">{formatARS(total)}</span>
           </Card>
 
-          {shortfall > 0 ? (
-            <Alert tone="warning" className="mt-3">
-              Te faltan {formatARS(shortfall)} para el pedido mínimo de {formatARS(MIN_ORDER_CENTS)}
-              .
-            </Alert>
-          ) : null}
-
           <Card className="mt-6 p-4">
             <Form method="post" action="/carrito" className="flex flex-col gap-3">
               <input type="hidden" name="intent" value="create-order" />
@@ -231,14 +217,9 @@ export default function Cart({ loaderData, actionData }: Route.ComponentProps) {
                 label="Notas (opcional)"
                 name="notes"
                 rows={2}
-                placeholder="Horario de entrega, aclaraciones…"
+                placeholder="Aclaraciones, retiro, envío…"
               />
-              <SubmitButton
-                pendingLabel="Creando pedido…"
-                disabled={shortfall > 0 || lines.some((line) => line.belowMin)}
-              >
-                Realizar pedido
-              </SubmitButton>
+              <SubmitButton pendingLabel="Creando pedido…">Realizar pedido</SubmitButton>
             </Form>
           </Card>
         </>

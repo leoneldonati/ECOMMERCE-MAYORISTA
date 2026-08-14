@@ -5,7 +5,7 @@ import { runMigrations } from "./migrate.server";
 
 // Singleton de conexión cacheado en globalThis: en dev con HMR la conexión
 // sobrevive a los recargos de módulos y no se reabre la base en cada request.
-const globalRef = globalThis as unknown as { __mayoristaDb?: DatabaseSync };
+const globalRef = globalThis as unknown as { __impresoDb?: DatabaseSync };
 
 const NEW_DB_PRAGMAS = [
   "PRAGMA journal_mode = WAL;",
@@ -23,12 +23,12 @@ export function getDbFilePath(): string {
  * Solo código de servidor (archivos *.server.ts y scripts) debe llamarla.
  */
 export function getDb(): DatabaseSync {
-  if (globalRef.__mayoristaDb) return globalRef.__mayoristaDb;
+  if (globalRef.__impresoDb) return globalRef.__impresoDb;
   const dbPath = getDbFilePath();
   mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   for (const pragma of NEW_DB_PRAGMAS) db.exec(pragma);
   runMigrations(db);
-  globalRef.__mayoristaDb = db;
+  globalRef.__impresoDb = db;
   return db;
 }

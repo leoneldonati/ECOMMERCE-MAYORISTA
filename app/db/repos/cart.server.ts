@@ -1,5 +1,5 @@
 import { getDb } from "../client.server";
-import type { PriceTier, Product, ProductWithTiers } from "../types";
+import type { Product } from "../types";
 
 // Carrito persistido por usuario (cart_items). El server es la fuente de verdad:
 // los precios/stock se revalidan al crear la orden, no al agregar.
@@ -7,15 +7,14 @@ import type { PriceTier, Product, ProductWithTiers } from "../types";
 export interface CartLine {
   product_id: number;
   quantity: number;
-  product: ProductWithTiers;
+  product: Product;
 }
 
 type CartProductRow = Product & { product_id: number; quantity: number };
 
-/** Líneas del carrito con los productos activos y sus escalas. */
+/** Líneas del carrito con los productos activos. */
 export function listCartWithProducts(userId: number): CartLine[] {
-  const db = getDb();
-  const rows = db
+  const rows = getDb()
     .prepare(
       `SELECT c.product_id, c.quantity, p.*
        FROM cart_items c
@@ -24,25 +23,7 @@ export function listCartWithProducts(userId: number): CartLine[] {
        ORDER BY p.name`,
     )
     .all(userId) as unknown as CartProductRow[];
-  if (rows.length === 0) return [];
-
-  const ids = rows.map((row) => row.product_id);
-  const placeholders = ids.map(() => "?").join(", ");
-  const tiers = db
-    .prepare(`SELECT * FROM price_tiers WHERE product_id IN (${placeholders}) ORDER BY min_qty`)
-    .all(...ids) as unknown as PriceTier[];
-  const tiersByProduct = new Map<number, PriceTier[]>();
-  for (const tier of tiers) {
-    const list = tiersByProduct.get(tier.product_id) ?? [];
-    list.push(tier);
-    tiersByProduct.set(tier.product_id, list);
-  }
-
-  return rows.map(({ product_id, quantity, ...product }) => ({
-    product_id,
-    quantity,
-    product: { ...product, tiers: tiersByProduct.get(product_id) ?? [] },
-  }));
+  return rows.map(({ product_id, quantity, ...product }) => ({ product_id, quantity, product }));
 }
 
 export function countCartItems(userId: number): number {

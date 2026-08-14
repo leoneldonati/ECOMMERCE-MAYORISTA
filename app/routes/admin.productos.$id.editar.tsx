@@ -3,13 +3,7 @@ import type { Route } from "./+types/admin.productos.$id.editar";
 
 import { ProductForm, type ProductFormValues } from "~/components/admin/product-form";
 import { listCategories } from "~/db/repos/categories.server";
-import {
-  findProductById,
-  findProductBySlug,
-  listTiersForProduct,
-  replacePriceTiers,
-  updateProduct,
-} from "~/db/repos/products.server";
+import { findProductById, findProductBySlug, updateProduct } from "~/db/repos/products.server";
 import { requireAdmin } from "~/lib/middleware.server";
 import { requireCsrf } from "~/lib/csrf.server";
 import { redirectWithFlash } from "~/lib/flash.server";
@@ -18,27 +12,18 @@ import { fieldErrors, productSchema } from "~/lib/validation.server";
 
 export const middleware: Route.MiddlewareFunction[] = [requireAdmin];
 
-interface RawForm {
-  name: string;
-  slug: string;
-  categoryId: string;
-  unitLabel: string;
-  packageSize: string;
-  description: string;
-  stock: string;
-  active: boolean;
-}
-
-function buildValues(
-  raw: RawForm,
-  tierRows: { minQty: string; price: string }[],
-): ProductFormValues {
-  const stock = Number(raw.stock);
+function toFormValues(product: Awaited<ReturnType<typeof findProductById>>): ProductFormValues {
   return {
-    ...raw,
-    categoryId: raw.categoryId ? Number(raw.categoryId) : undefined,
-    stock: Number.isInteger(stock) && stock >= 0 ? stock : undefined,
-    tiers: tierRows,
+    name: product?.name,
+    slug: product?.slug,
+    categoryId: product?.category_id,
+    description: product?.description ?? "",
+    price: product ? centsToPesosInput(product.price_cents) : undefined,
+    imageUrl: product?.image_url ?? "",
+    stock: product?.stock,
+    leadTimeDays: product?.lead_time_days ?? undefined,
+    madeToOrder: product?.made_to_order === 1,
+    active: product?.active === 1,
   };
 }
 
@@ -49,25 +34,7 @@ export async function loader({ params }: Route.LoaderArgs) {
   const product = findProductById(productId);
   if (!product) throw data(null, { status: 404 });
 
-  const tiers = listTiersForProduct(productId);
-  return {
-    productId: product.id,
-    categories: listCategories(),
-    product: {
-      name: product.name,
-      slug: product.slug,
-      categoryId: product.category_id,
-      unitLabel: product.unit_label,
-      packageSize: product.package_size ?? "",
-      description: product.description ?? "",
-      stock: product.stock,
-      active: product.active === 1,
-      tiers: tiers.map((tier) => ({
-        minQty: String(tier.min_qty),
-        price: centsToPesosInput(tier.price_cents),
-      })),
-    } satisfies ProductFormValues,
-  };
+  return { productId: product.id, categories: listCategories(), product: toFormValues(product) };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -82,46 +49,65 @@ export async function action({ request, params }: Route.ActionArgs) {
   const formData = await request.formData();
   const get = (name: string) => String(formData.get(name) ?? "");
 
-  const tierCountRaw = Number(formData.get("tierCount"));
-  const tierCount = Number.isInteger(tierCountRaw) ? Math.min(Math.max(tierCountRaw, 0), 6) : 0;
-
-  const tierRows: { minQty: string; price: string }[] = [];
-  const tiers: { minQty: number; priceCents: number }[] = [];
-  for (let i = 0; i < tierCount; i++) {
-    const minQty = get(`tier-min-${i}`);
-    const price = get(`tier-price-${i}`);
-    tierRows.push({ minQty, price });
-    tiers.push({ minQty: Number(minQty), priceCents: pesosToCents(price) ?? Number.NaN });
-  }
-
-  const raw: RawForm = {
+  const raw = {
     name: get("name"),
     slug: get("slug"),
     categoryId: get("categoryId"),
-    unitLabel: get("unitLabel"),
-    packageSize: get("packageSize"),
     description: get("description"),
+    price: get("price"),
+    imageUrl: get("imageUrl"),
     stock: get("stock"),
+    leadTimeDays: get("leadTimeDays"),
+    madeToOrder: formData.get("madeToOrder") === "on",
     active: formData.get("active") === "on",
   };
 
-  const parsed = productSchema.safeParse({ ...raw, tiers });
+  const priceCents = pesosToCents(raw.price) ?? Number.NaN;
+  const parsed = productSchema.safeParse({
+    name: raw.name,
+    slug: raw.slug,
+    categoryId: raw.categoryId,
+    description: raw.description,
+    priceCents,
+    imageUrl: raw.imageUrl || null,
+    stock: raw.stock,
+    leadTimeDays: raw.leadTimeDays || null,
+    madeToOrder: raw.madeToOrder,
+    active: raw.active,
+  });
+
+  const values: ProductFormValues = {
+    name: raw.name || undefined,
+    slug: raw.slug || undefined,
+    categoryId: raw.categoryId ? Number(raw.categoryId) : undefined,
+    description: raw.description || undefined,
+    price: raw.price || undefined,
+    imageUrl: raw.imageUrl || undefined,
+    stock: raw.stock ? Number(raw.stock) : undefined,
+    leadTimeDays: raw.leadTimeDays ? Number(raw.leadTimeDays) : undefined,
+    madeToOrder: raw.madeToOrder,
+    active: raw.active,
+  };
+
   if (!parsed.success) {
-    return data(
-      { errors: fieldErrors(parsed.error), values: buildValues(raw, tierRows) },
-      { status: 400 },
-    );
+    return data({ errors: fieldErrors(parsed.error), values }, { status: 400 });
   }
 
-  const { name, categoryId, slug, unitLabel, packageSize, description, stock, active } =
-    parsed.data;
+  const {
+    name,
+    categoryId,
+    slug,
+    description,
+    stock,
+    imageUrl,
+    leadTimeDays,
+    madeToOrder,
+    active,
+  } = parsed.data;
   const conflict = findProductBySlug(slug);
   if (conflict && conflict.id !== productId) {
     return data(
-      {
-        errors: { slug: "El slug ya está en uso por otro producto." },
-        values: buildValues(raw, tierRows),
-      },
+      { errors: { slug: "El slug ya está en uso por otro producto." }, values },
       { status: 400 },
     );
   }
@@ -130,16 +116,14 @@ export async function action({ request, params }: Route.ActionArgs) {
     categoryId,
     slug,
     name,
-    unitLabel,
-    packageSize,
     description,
+    priceCents: parsed.data.priceCents,
+    imageUrl,
     stock,
+    leadTimeDays,
+    madeToOrder,
     active,
   });
-  replacePriceTiers(
-    productId,
-    parsed.data.tiers.map((tier) => ({ minQty: tier.minQty, priceCents: tier.priceCents })),
-  );
   return redirectWithFlash("/admin/productos", `"${name}" fue actualizado.`);
 }
 

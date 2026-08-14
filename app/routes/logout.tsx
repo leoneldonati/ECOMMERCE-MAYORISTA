@@ -16,7 +16,7 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Cerrar sesión — Despensa Online" }];
+  return [{ title: "Cerrar sesión — Impreso Online" }];
 }
 
 export default function Logout() {

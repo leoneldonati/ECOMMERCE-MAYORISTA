@@ -7,16 +7,12 @@ import { Page } from "~/components/ui/page";
 import { TextLink } from "~/components/ui/text-link";
 import { listCategoriesWithActiveCounts } from "~/db/repos/categories.server";
 import { listProducts } from "~/db/repos/products.server";
-import { getCurrentUser } from "~/lib/auth.server";
-import { catalogVisibility, toCatalogItem } from "~/lib/catalog.server";
+import { toCatalogItem } from "~/lib/catalog.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const q = url.searchParams.get("q") ?? "";
   const categoria = url.searchParams.get("categoria") ?? "";
-
-  const user = await getCurrentUser(request);
-  const { canSeePrices, pricesNotice } = catalogVisibility(user);
 
   const [categories, products] = await Promise.all([
     listCategoriesWithActiveCounts(),
@@ -27,17 +23,11 @@ export async function loader({ request }: Route.LoaderArgs) {
     }),
   ]);
 
-  return {
-    items: products.map((product) => toCatalogItem(product, canSeePrices)),
-    categories,
-    q,
-    categoria,
-    pricesNotice,
-  };
+  return { items: products.map(toCatalogItem), categories, q, categoria };
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Catálogo — Despensa Online" }];
+  return [{ title: "Catálogo — Impreso Online" }];
 }
 
 function href(categoria: string, q: string): string {
@@ -49,7 +39,7 @@ function href(categoria: string, q: string): string {
 }
 
 export default function Catalog({ loaderData }: Route.ComponentProps) {
-  const { items, categories, q, categoria, pricesNotice } = loaderData;
+  const { items, categories, q, categoria } = loaderData;
   const total = categories.reduce((sum, category) => sum + category.product_count, 0);
 
   const chipClass = (active: boolean) =>
@@ -60,9 +50,9 @@ export default function Catalog({ loaderData }: Route.ComponentProps) {
   return (
     <Page size="xl">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold">Catálogo mayorista</h1>
+        <h1 className="text-2xl font-bold">Catálogo</h1>
         <p className="mt-1 text-sm text-stone-600">
-          Precios mayoristas en ARS con escalas por cantidad de cajas.
+          Productos impresos en 3D, en stock o bajo pedido. Precios en ARS por unidad.
         </p>
       </header>
 
@@ -106,7 +96,7 @@ export default function Catalog({ loaderData }: Route.ComponentProps) {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
-            <ProductCard key={item.slug} item={item} pricesNotice={pricesNotice} />
+            <ProductCard key={item.slug} item={item} />
           ))}
         </div>
       )}

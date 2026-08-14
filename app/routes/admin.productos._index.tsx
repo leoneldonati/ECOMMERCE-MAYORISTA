@@ -7,16 +7,16 @@ import { Badge } from "~/components/ui/badge";
 import { EmptyState } from "~/components/ui/empty-state";
 import { TableShell } from "~/components/ui/table";
 import { TextLink } from "~/components/ui/text-link";
+import { availabilityLabel } from "~/lib/availability";
 import { formatARS } from "~/lib/money";
-import type { ProductWithTiers } from "~/db/types";
+import type { Product } from "~/db/types";
 
 // Listado de productos del panel. El loader y el action de activar/eliminar
 // viven en el layout (admin.productos) porque el POST a /admin/productos se
 // resuelve en esa ruta; acá solo se lee el loader del padre.
 
 export default function AdminProducts() {
-  const root = useRouteLoaderData("routes/admin.productos") as
-    { products: ProductWithTiers[] } | undefined;
+  const root = useRouteLoaderData("routes/admin.productos") as { products: Product[] } | undefined;
   const products = root?.products ?? [];
 
   return (
@@ -29,7 +29,9 @@ export default function AdminProducts() {
       {products.length === 0 ? (
         <EmptyState description="Todavía no hay productos." />
       ) : (
-        <TableShell headers={["Producto", "Categoría", "Stock", "Escalas", "Estado", "Acciones"]}>
+        <TableShell
+          headers={["Producto", "Categoría", "Precio", "Disponibilidad", "Estado", "Acciones"]}
+        >
           {products.map((product) => (
             <ProductRow key={product.id} product={product} />
           ))}
@@ -39,31 +41,24 @@ export default function AdminProducts() {
   );
 }
 
-function ProductRow({ product }: { product: ProductWithTiers }) {
-  const fromPrice = product.tiers[0]?.price_cents ?? null;
-
+function ProductRow({ product }: { product: Product }) {
   return (
     <tr className="border-t border-stone-100 align-top">
       <td className="px-4 py-3">
         <TextLink to={`/admin/productos/${product.id}/editar`}>{product.name}</TextLink>
-        <p className="text-stone-500">
-          {product.slug} · {product.unit_label}
-        </p>
-        {product.package_size ? (
-          <p className="text-xs text-stone-400">{product.package_size}</p>
-        ) : null}
+        <p className="text-stone-500">{product.slug}</p>
       </td>
       <td className="px-4 py-3 text-stone-600">{product.category_name ?? "—"}</td>
-      <td className="px-4 py-3">
-        <span className={product.stock === 0 ? "font-medium text-red-700" : "text-stone-700"}>
-          {product.stock}
-        </span>
-      </td>
+      <td className="px-4 py-3 font-medium">{formatARS(product.price_cents)}</td>
       <td className="px-4 py-3 text-stone-600">
-        {product.tiers.length} {product.tiers.length === 1 ? "escala" : "escalas"}
-        {fromPrice !== null ? (
-          <span className="block text-xs text-stone-400">desde {formatARS(fromPrice)}</span>
-        ) : null}
+        {availabilityLabel(
+          product.made_to_order === 1
+            ? "made_to_order"
+            : product.stock > 0
+              ? "in_stock"
+              : "out_of_stock",
+          product.lead_time_days,
+        )}
       </td>
       <td className="px-4 py-3">
         <Badge tone={product.active === 1 ? "success" : "neutral"}>

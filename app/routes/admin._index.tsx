@@ -3,7 +3,6 @@ import type { Route } from "./+types/admin._index";
 
 import { Card } from "~/components/ui/card";
 import { listProducts } from "~/db/repos/products.server";
-import { listUsers } from "~/db/repos/users.server";
 import { listOrdersWithUser } from "~/db/repos/orders.server";
 
 interface Card {
@@ -14,32 +13,22 @@ interface Card {
 }
 
 export async function loader({}: Route.LoaderArgs) {
-  const [users, orders, products] = await Promise.all([
-    listUsers("pending"),
-    listOrdersWithUser(),
-    listProducts(),
-  ]);
+  const [orders, products] = await Promise.all([listOrdersWithUser(), listProducts()]);
 
   const byStatus = (status: string) => orders.filter((order) => order.status === status).length;
 
   return {
-    pendingClients: users.length,
     pendingOrders: byStatus("pending"),
     paidOrders: byStatus("paid"),
-    outOfStock: products.filter((product) => product.stock === 0).length,
+    outOfStock: products.filter((product) => product.stock === 0 && product.made_to_order === 0)
+      .length,
   };
 }
 
 export default function AdminOverview({ loaderData }: Route.ComponentProps) {
-  const { pendingClients, pendingOrders, paidOrders, outOfStock } = loaderData;
+  const { pendingOrders, paidOrders, outOfStock } = loaderData;
 
   const cards: Card[] = [
-    {
-      to: "/admin/clientes?estado=pending",
-      label: "Clientes pendientes",
-      value: pendingClients,
-      hint: "Cuentas esperando aprobación",
-    },
     {
       to: "/admin/pedidos?estado=pending",
       label: "Pedidos pendientes",
@@ -54,9 +43,9 @@ export default function AdminOverview({ loaderData }: Route.ComponentProps) {
     },
     {
       to: "/admin/productos",
-      label: "Productos sin stock",
+      label: "Productos agotados",
       value: outOfStock,
-      hint: "Catalogados en 0",
+      hint: "De depósito sin stock",
     },
   ];
 

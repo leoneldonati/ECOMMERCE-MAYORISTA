@@ -9,7 +9,6 @@ import { Alert } from "~/components/ui/alert";
 import { Card } from "~/components/ui/card";
 import { FormError } from "~/components/ui/form-error";
 import { errorResponse } from "~/lib/action-utils.server";
-import { formatCuit } from "~/lib/cuit";
 import { formatDateTime } from "~/lib/dates";
 import { findOrderWithItems, transitionOrderStatus, OrderError } from "~/db/repos/orders.server";
 import { findUserById, toPublicUser } from "~/db/repos/users.server";
@@ -122,24 +121,16 @@ export default function AdminOrderDetail({ loaderData, actionData }: Route.Compo
       ) : null}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Datos del cliente */}
+        {/* Datos del cliente: dirección y teléfono sirven para coordinar la entrega */}
         <Card title="Cliente" className="p-5">
           <dl className="grid gap-2 text-sm">
             <div className="flex justify-between gap-4">
-              <dt className="text-stone-500">Razón social</dt>
-              <dd className="font-medium">{user.business_name}</dd>
+              <dt className="text-stone-500">Nombre</dt>
+              <dd className="font-medium">{user.name}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-stone-500">Email</dt>
               <dd>{user.email}</dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-stone-500">CUIT</dt>
-              <dd>{formatCuit(user.cuit)}</dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-stone-500">Contacto</dt>
-              <dd>{user.contact_name ?? "—"}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-stone-500">Teléfono</dt>
@@ -148,6 +139,10 @@ export default function AdminOrderDetail({ loaderData, actionData }: Route.Compo
             <div className="flex justify-between gap-4">
               <dt className="text-stone-500">Provincia</dt>
               <dd>{user.province ?? "—"}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-stone-500">Dirección</dt>
+              <dd>{user.address ?? "—"}</dd>
             </div>
           </dl>
           {order.notes ? (
@@ -163,12 +158,20 @@ export default function AdminOrderDetail({ loaderData, actionData }: Route.Compo
           <ul className="divide-y divide-stone-100">
             {order.items.map((item) => (
               <li key={item.id} className="flex items-center justify-between gap-4 py-3">
-                <div>
-                  <p className="font-medium">{item.product_name}</p>
-                  <p className="text-sm text-stone-500">
-                    {item.package_size ? `${item.package_size} · ` : ""}
-                    {item.quantity} x {formatARS(item.unit_price_cents)}
-                  </p>
+                <div className="flex items-center gap-3">
+                  {item.image_url ? (
+                    <img
+                      src={item.image_url}
+                      alt={item.product_name}
+                      className="h-10 w-10 rounded bg-stone-100 object-cover"
+                    />
+                  ) : null}
+                  <div>
+                    <p className="font-medium">{item.product_name}</p>
+                    <p className="text-sm text-stone-500">
+                      {item.quantity} x {formatARS(item.unit_price_cents)}
+                    </p>
+                  </div>
                 </div>
                 <span className="font-medium">{formatARS(item.subtotal_cents)}</span>
               </li>

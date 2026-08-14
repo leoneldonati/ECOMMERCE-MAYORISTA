@@ -1,11 +1,11 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { createCookie, data } from "react-router";
 
-// Protección CSRF por doble envío: la cookie `mayorista_csrf` (httpOnly) y el
+// Protección CSRF por doble envío: la cookie `impreso_csrf` (httpOnly) y el
 // campo oculto `_csrf` del form deben coincidir. Un sitio ajeno no puede leer
 // ni escribir la cookie, así que no puede forjar un POST válido.
 
-const CSRF_COOKIE_NAME = "mayorista_csrf";
+const CSRF_COOKIE_NAME = "impreso_csrf";
 const CSRF_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 const csrfCookie = createCookie(CSRF_COOKIE_NAME, {

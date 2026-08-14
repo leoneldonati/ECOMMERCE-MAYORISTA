@@ -68,7 +68,7 @@ export default function AdminOrders({ loaderData }: Route.ComponentProps) {
                 <TextLink to={`/admin/pedidos/${order.id}`}>#{order.id}</TextLink>
               </td>
               <td className="px-4 py-3">
-                <p className="font-medium">{order.business_name}</p>
+                <p className="font-medium">{order.name}</p>
                 <p className="text-stone-500">{order.email}</p>
               </td>
               <td className="px-4 py-3 text-stone-600">{formatDateTime(order.created_at)}</td>

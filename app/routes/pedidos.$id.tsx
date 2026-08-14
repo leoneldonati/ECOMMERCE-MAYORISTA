@@ -14,13 +14,13 @@ import { findOrderWithItems, notifyPayment, OrderError } from "~/db/repos/orders
 import { requireCsrf } from "~/lib/csrf.server";
 import { formatDateTime } from "~/lib/dates";
 import { redirectWithFlash } from "~/lib/flash.server";
-import { getContextUser, requireApproved } from "~/lib/middleware.server";
+import { getContextUser, requireUser } from "~/lib/middleware.server";
 import { formatARS } from "~/lib/money";
 import { PAYMENT_INFO } from "~/lib/orders";
 import { ORDER_STATUS_BADGES } from "~/lib/order-ui";
 import { fieldErrors, paymentNotificationSchema } from "~/lib/validation.server";
 
-export const middleware: Route.MiddlewareFunction[] = [requireApproved];
+export const middleware: Route.MiddlewareFunction[] = [requireUser];
 
 export async function loader({ params, context }: Route.LoaderArgs) {
   const user = getContextUser(context);
@@ -83,7 +83,7 @@ export async function action({ request, params, context }: Route.ActionArgs) {
 
 export function meta({ loaderData }: Route.MetaArgs) {
   const { order } = loaderData;
-  return [{ title: `Pedido #${order.id} — Despensa Online` }];
+  return [{ title: `Pedido #${order.id} — Impreso Online` }];
 }
 
 export default function OrderDetail({ loaderData, actionData }: Route.ComponentProps) {
@@ -110,13 +110,20 @@ export default function OrderDetail({ loaderData, actionData }: Route.ComponentP
       <ul className="divide-y divide-stone-100 rounded-lg border border-stone-200 bg-white">
         {order.items.map((item) => (
           <li key={item.id} className="flex items-center justify-between gap-4 p-4">
-            <div>
-              <p className="font-medium">{item.product_name}</p>
-              <p className="text-sm text-stone-500">
-                {item.package_size ? `${item.package_size} · ` : ""}
-                {item.quantity} x {formatARS(item.unit_price_cents)} ={" "}
-                {formatARS(item.subtotal_cents)}
-              </p>
+            <div className="flex items-center gap-3">
+              {item.image_url ? (
+                <img
+                  src={item.image_url}
+                  alt={item.product_name}
+                  className="h-12 w-12 rounded bg-stone-100 object-cover"
+                />
+              ) : null}
+              <div>
+                <p className="font-medium">{item.product_name}</p>
+                <p className="text-sm text-stone-500">
+                  {item.quantity} x {formatARS(item.unit_price_cents)}
+                </p>
+              </div>
             </div>
             <span className="font-medium">{formatARS(item.subtotal_cents)}</span>
           </li>

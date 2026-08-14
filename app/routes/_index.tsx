@@ -12,11 +12,11 @@ export async function loader({}: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Despensa Online — Alimentos no perecederos por mayor" },
+    { title: "Impreso Online — Productos impresos en 3D" },
     {
       name: "description",
       content:
-        "Compra mayorista de alimentos no perecederos en Argentina. Precios por escalas de cantidad, atención a revendedores, almacenes y distribuidores.",
+        "Productos impresos en 3D en Argentina: en stock o bajo pedido. Figuras, hogar, accesorios, juegos y útiles, con precios por unidad.",
     },
   ];
 }
@@ -28,18 +28,18 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     <Page size="xl" pad="comfortable">
       <section className="max-w-xl">
         <h1 className="text-4xl font-bold tracking-tight">
-          Alimentos no perecederos <span className="text-brand-700">por mayor</span>
+          Productos impresos en <span className="text-brand-700">3D</span>
         </h1>
         <p className="mt-4 text-lg text-stone-600">
-          Precios por escalas de cantidad, pedido mínimo de $ 10.000 y atención a revendedores,
-          almacenes y distribuidores de todo el país.
+          Figuras, objetos para el hogar, accesorios y juguetes. En stock o impresos bajo pedido,
+          con precios por unidad.
         </p>
         <div className="mt-8 flex gap-3">
           <ButtonLink to="/productos" size="lg">
             Ver catálogo
           </ButtonLink>
           <ButtonLink to="/registro" variant="secondary" size="lg">
-            Solicitar cuenta
+            Crear cuenta
           </ButtonLink>
         </div>
       </section>
@@ -65,7 +65,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       </section>
 
       <p className="mt-16 text-sm text-stone-400">
-        Los precios mayoristas se muestran a los clientes con cuenta aprobada.
+        Los productos bajo pedido se imprimen a medida; coordinamos la entrega por WhatsApp o
+        Telegram tras confirmar el pago.
       </p>
     </Page>
   );

@@ -17,23 +17,13 @@ function redirectToLogin(request: Request): Response {
   return redirect(`/login?next=${encodeURIComponent(pathname)}`);
 }
 
-/** Exige sesión vigente: sin usuario redirige a /login y guarda el destino. */
+/**
+ * Exige un cliente para comprar (B2C: todos los registrados están habilitados).
+ * Sin sesión redirige a /login.
+ */
 export async function requireUser({ request, context }: MiddlewareArgs): Promise<void> {
   const user = await getCurrentUser(request);
   if (!user) throw redirectToLogin(request);
-  context.set(userContext, user);
-}
-
-/**
- * Exige un cliente aprobado (o admin) para comprar. Los pendientes/rechazados
- * van a /mi-cuenta donde ya ven el banner de su estado.
- */
-export async function requireApproved({ request, context }: MiddlewareArgs): Promise<void> {
-  const user = await getCurrentUser(request);
-  if (!user) throw redirectToLogin(request);
-  if (user.role !== "admin" && user.status !== "approved") {
-    throw redirect("/mi-cuenta");
-  }
   context.set(userContext, user);
 }
 

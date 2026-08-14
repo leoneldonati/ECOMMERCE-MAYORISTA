@@ -5,12 +5,12 @@ import { Badge } from "~/components/ui/badge";
 import { EmptyState } from "~/components/ui/empty-state";
 import { TextLink } from "~/components/ui/text-link";
 import { listOrdersByUser } from "~/db/repos/orders.server";
-import { getContextUser, requireApproved } from "~/lib/middleware.server";
+import { getContextUser, requireUser } from "~/lib/middleware.server";
 import { formatDateTime } from "~/lib/dates";
 import { formatARS } from "~/lib/money";
 import { ORDER_STATUS_BADGES } from "~/lib/order-ui";
 
-export const middleware: Route.MiddlewareFunction[] = [requireApproved];
+export const middleware: Route.MiddlewareFunction[] = [requireUser];
 
 export async function loader({ context }: Route.LoaderArgs) {
   const user = getContextUser(context);
@@ -18,7 +18,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Mis pedidos — Despensa Online" }];
+  return [{ title: "Mis pedidos — Impreso Online" }];
 }
 
 export default function OrderList({ loaderData }: Route.ComponentProps) {

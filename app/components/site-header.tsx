@@ -5,7 +5,7 @@ import { CsrfToken } from "./csrf-token";
 import { Badge } from "./ui/badge";
 import { Button, ButtonLink } from "./ui/button";
 
-// Identidad del header: marca con glifo de caja mayorista (mismo trazo que el
+// Identidad del header: marca con glifo de impresión 3D (mismo trazo que el
 // favicon), NavLink con aria-current automático y menú colapsable en mobile.
 
 function Logo() {
@@ -22,7 +22,7 @@ function Logo() {
         />
       </svg>
       <span className="text-lg font-bold tracking-tight">
-        Despensa<span className="text-brand-700">Online</span>
+        Impreso<span className="text-brand-700">Online</span>
       </span>
     </span>
   );

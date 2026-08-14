@@ -60,13 +60,12 @@ export async function action({ request }: Route.ActionArgs) {
 
   const cookie = await createLoginCookie(user.id);
   const next = new URL(request.url).searchParams.get("next");
-  const target =
-    user.status === "pending" ? "/mi-cuenta" : next && next.startsWith("/") ? next : "/";
+  const target = next && next.startsWith("/") ? next : "/";
   return redirect(target, { headers: { "Set-Cookie": cookie } });
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Ingresar — Despensa Online" }];
+  return [{ title: "Ingresar — Impreso Online" }];
 }
 
 export default function Login({ actionData }: Route.ComponentProps) {
@@ -74,7 +73,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
   return (
     <Page size="sm" pad="comfortable" className="flex flex-col">
       <h1 className="mb-2 text-2xl font-bold">Ingresar</h1>
-      <p className="mb-6 text-sm text-stone-600">Entrá con el email de tu cuenta mayorista.</p>
+      <p className="mb-6 text-sm text-stone-600">Entrá con el email de tu cuenta.</p>
       <FormError className="mb-4">{errors._form}</FormError>
       <Form method="post" className="flex flex-col gap-4">
         <CsrfToken />
@@ -97,7 +96,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
         <SubmitButton pendingLabel="Ingresando…">Ingresar</SubmitButton>
       </Form>
       <p className="mt-6 text-sm text-stone-600">
-        ¿No tenés cuenta? <TextLink to="/registro">Solicitá tu cuenta mayorista</TextLink>
+        ¿No tenés cuenta? <TextLink to="/registro">Crear una cuenta</TextLink>
       </p>
     </Page>
   );
