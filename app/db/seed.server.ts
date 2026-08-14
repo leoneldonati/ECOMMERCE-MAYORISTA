@@ -14,8 +14,13 @@ const SEED_ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "admin1234";
 const DEMO_CUSTOMER_EMAIL = "cliente@impreso.test";
 const DEMO_CUSTOMER_PASSWORD = "cliente1234";
 
+// En producción conviene no poblar el catálogo demo ni el cliente de prueba:
+// con SEED_ONLY_ADMIN=1 solo se crea el admin (para operar el panel) y el
+// catálogo se carga a mano desde el admin.
+const SEED_ONLY_ADMIN = process.env.SEED_ONLY_ADMIN === "1";
+
 export function seedDatabase(): void {
-  seedCatalog();
+  if (!SEED_ONLY_ADMIN) seedCatalog();
   seedUsers();
 }
 
@@ -60,6 +65,7 @@ function seedUsers(): void {
   );
 
   if (listUsers().some((user) => user.role === "customer")) return;
+  if (SEED_ONLY_ADMIN) return;
   createUser({
     email: DEMO_CUSTOMER_EMAIL,
     passwordHash: hashPassword(DEMO_CUSTOMER_PASSWORD),

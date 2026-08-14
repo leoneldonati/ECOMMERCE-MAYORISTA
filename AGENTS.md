@@ -59,5 +59,6 @@ cliente tras confirmar el pago.
 
 - `docs/000-architecture.md` — decisiones de diseño y stack
 - `docs/001-schema.md` — modelo de datos (mantener en sync con las migraciones)
-- `docs/002-flows.md` — flujos de negocio (registro/aprobación, pedidos, seguridad)
+- `docs/002-flows.md` — flujos de negocio (registro, catálogo, pedidos, admin)
+- `docs/003-golive.md` — runbook de puesta en producción
 - Al tocar la base de datos: actualizar la migración y `docs/001-schema.md` juntos.
