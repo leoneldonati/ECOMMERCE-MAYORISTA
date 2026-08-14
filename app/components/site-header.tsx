@@ -1,26 +1,18 @@
 import { Form, Link, NavLink, useLocation } from "react-router";
 import { useEffect, useState } from "react";
+import { Box, Menu, ShoppingCart, X } from "lucide-react";
 import type { PublicUser } from "~/db/types";
 import { CsrfToken } from "./csrf-token";
 import { Badge } from "./ui/badge";
 import { Button, ButtonLink } from "./ui/button";
 
-// Identidad del header: marca con glifo de impresión 3D (mismo trazo que el
+// Identidad del header: marca con glifo de cubo 3D (mismo trazo que el
 // favicon), NavLink con aria-current automático y menú colapsable en mobile.
 
 function Logo() {
   return (
     <span className="flex items-center gap-2">
-      <svg viewBox="0 0 24 24" className="h-6 w-6 text-brand-700" aria-hidden="true" fill="none">
-        <rect x="3" y="8" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="1.8" />
-        <path d="M3 11 L21 11" stroke="currentColor" strokeWidth="1.8" />
-        <path
-          d="M8 8 V6 a2 2 0 0 1 2-2 h4 a2 2 0 0 1 2 2 V8"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-      </svg>
+      <Box className="h-6 w-6 text-brand-700" strokeWidth={1.8} aria-hidden="true" />
       <span className="text-lg font-bold tracking-tight">
         Impreso<span className="text-brand-700">Online</span>
       </span>
@@ -37,7 +29,7 @@ export function SiteHeader({ user, cartCount }: { user: PublicUser | null; cartC
   // Cerrar el menú después de navegar.
   useEffect(() => setOpen(false), [location.pathname]);
 
-  const canBuy = user !== null && (user.role === "admin" || user.status === "approved");
+  const canBuy = user !== null;
   const loggedIn = user !== null;
 
   const menu = (
@@ -99,17 +91,7 @@ export function SiteHeader({ user, cartCount }: { user: PublicUser | null; cartC
               aria-label={`Carrito de compras, ${cartCount} artículo${cartCount === 1 ? "" : "s"}`}
               className="relative rounded-md p-1.5 text-stone-700 hover:bg-stone-100"
             >
-              <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true" fill="none">
-                <path
-                  d="M3 4h2l2.4 12.2a1 1 0 0 0 1 .8h8.7a1 1 0 0 0 1-.8L20 8H6"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <circle cx="9.5" cy="20" r="1.4" fill="currentColor" />
-                <circle cx="17" cy="20" r="1.4" fill="currentColor" />
-              </svg>
+              <ShoppingCart className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
               {cartCount > 0 ? (
                 <span className="absolute -right-0.5 -top-0.5 rounded-full bg-brand-700 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
                   {cartCount}
@@ -125,27 +107,11 @@ export function SiteHeader({ user, cartCount }: { user: PublicUser | null; cartC
             onClick={() => setOpen((value) => !value)}
             className={`rounded-md p-1.5 transition-colors hover:bg-stone-100 ${open ? "bg-stone-100 text-stone-900" : "text-stone-700"}`}
           >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-6 w-6"
-              aria-hidden="true"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            >
-              {open ? (
-                <>
-                  <path d="M6 6 L18 18" />
-                  <path d="M18 6 L6 18" />
-                </>
-              ) : (
-                <>
-                  <path d="M4 6 H20" />
-                  <path d="M4 12 H20" />
-                  <path d="M4 18 H20" />
-                </>
-              )}
-            </svg>
+            {open ? (
+              <X className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
+            ) : (
+              <Menu className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
+            )}
           </button>
         </div>
       </div>
