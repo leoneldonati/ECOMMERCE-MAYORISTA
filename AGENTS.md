@@ -4,10 +4,11 @@ Convenciones para trabajar en este repositorio. Léelo antes de tocar código.
 
 ## Contexto del proyecto
 
-Ecommerce B2B de alimentos no perecederos (venta mayorista) en Argentina.
-Precios en ARS (netos, sin IVA), mínimo de pedido ARS $ 10.000 y precios por
-escalas de cantidad. Modelo: registro de clientes con aprobación del admin,
-pagos manuales (transferencia/depósito).
+Ecommerce B2C de productos impresos en 3D (venta por unidad) en Argentina.
+Precios en ARS (netos) con precio único por producto, venta en stock o bajo
+pedido (fabricación a pedido con lead time). Modelo: registro abierto (sin
+aprobación), pagos manuales (transferencia/depósito) y envío coordinado con el
+cliente tras confirmar el pago.
 
 ## Stack y decisiones
 
@@ -24,7 +25,7 @@ pagos manuales (transferencia/depósito).
 
 - `app/db/*`, `app/lib/*.server.ts` son SOLO servidor (sufijo `.server.ts`).
   Importarlos únicamente desde loaders/actions u otros `.server.ts`.
-- `app/lib/pricing.ts`, `money.ts`, `dates.ts`, `cuit.ts`, `order-ui.ts` y
+- `app/lib/money.ts`, `dates.ts`, `availability.ts`, `order-ui.ts` y
   `notify-messages.ts` son compartidos (cliente + servidor): código puro, sin
   acceso a DB ni a `process.env`. Lo mismo aplica a `app/components/ui/*`
   (componentes sin importaciones `.server`). El envío (IO/red) sí va en

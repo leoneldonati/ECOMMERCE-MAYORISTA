@@ -1,14 +1,15 @@
-# Arquitectura — Ecommerce B2B Alimentos Mayorista
+# Arquitectura — Ecommerce Impreso Online
 
 Referencia de decisiones de diseño y stack del proyecto. Los cambios se acuerdan
 en [ADR] cuando hay un trade-off relevante.
 
 ## Objetivo
 
-Tienda en línea para **venta mayorista (B2B)** de alimentos no perecederos en
-Argentina. Precios en **ARS netos** (sin IVA), **mínimo por pedido de $ 10.000**
-y precios por **escalas de cantidad**. El acceso a precios y la compra están
-restringidos a clientes **aprobados por el admin**.
+Tienda en línea para **venta directa al consumidor (B2C)** de **productos
+impresos en 3D** en Argentina. Precios en **ARS netos** por **precio único**,
+venta **en stock o bajo pedido** (fabricación a medida con lead time). Registro
+**abierto** (sin aprobación), **pago manual** (transferencia/depósito) y
+**entrega coordinada** con el cliente tras confirmar el pago.
 
 ## Stack
 
@@ -95,17 +96,19 @@ docs/                  # Documentación de arquitectura
 
 ## Flujo de pedido
 
-Cliente registrado y aprobado arma pedido (mínimo $ 10.000) → orden `pending` →
-admin `confirmed` (stock + total) → `paid` (recibió transferencia/depósito) →
-`shipped` o `cancelled`.
+Cliente registrado arma pedido (sin mínimo) → orden `pending` → admin
+`confirmed` (valida stock; los productos bajo pedido no descuentan stock) →
+`paid` (recibió transferencia/depósito) → `shipped` o `cancelled`. La entrega
+se coordina con el cliente (teléfono/dirección) tras confirmar el pago.
 
 ## Fases del proyecto
 
 1. ✅ Infraestructura de datos + auth (registro, login, sesiones, CSRF)
-2. ✅ Catálogo B2B (precios según rol, visibles para aprobados)
-3. ✅ Carrito + pedido (mínimo $ 10.000, pago manual)
-4. ✅ Panel admin (aprobar clientes, productos, pedidos)
+2. ✅ Catálogo (productos con precio único, imagen y disponibilidad)
+3. ✅ Carrito + pedido (B2C, pago manual)
+4. ✅ Panel admin (clientes, productos, pedidos)
 5. ✅ Pulido y refinamientos
+6. ✅ Reconversión a ecommerce de productos impresos en 3D (B2C, stock/bajo pedido)
 
 ## Calidad de código (Fase 5)
 
@@ -117,9 +120,9 @@ admin `confirmed` (stock + total) → `paid` (recibió transferencia/depósito) 
 - Scripts: `npm run lint`, `npm run format` (check) y `npm run format:write`.
 - Componentes de UI compartidos en `app/components/ui/` (Page, Card, Alert,
   FormError, EmptyState, TableShell, TextLink, ButtonLink) y helpers puros en
-  `app/lib/` (`dates.ts`, `cuit.ts`, `order-ui.ts`) para eliminar clases y
-  maps duplicados. `Page` unifica el contenedor de página (ancho según
-  `size` y espacio vertical según `pad`).
+  `app/lib/` (`money.ts`, `dates.ts`, `availability.ts`, `order-ui.ts`) para
+  eliminar clases y maps duplicados. `Page` unifica el contenedor de página
+  (ancho según `size` y espacio vertical según `pad`).
 
 ## Producción (react-router-serve)
 

@@ -1,9 +1,10 @@
-# Despensa Online — Ecommerce B2B de alimentos por mayor
+# Impreso Online — Ecommerce de productos impresos en 3D
 
-Tienda en línea para **venta mayorista (B2B)** de alimentos no perecederos en
-Argentina. Precios en **ARS netos** (sin IVA), **pedido mínimo de $ 10.000** y
-precios por **escalas de cantidad**. El acceso a precios y la compra está
-restringido a clientes **aprobados por el admin**.
+Tienda en línea para **venta directa al consumidor (B2C)** de **productos
+impresos en 3D** en Argentina. Precios en **ARS netos** con **precio único** por
+producto, venta **en stock o bajo pedido** (fabricación a medida con lead time).
+Registro abierto (sin aprobación), pagos manuales (transferencia/depósito) y
+entrega coordinada con el cliente tras confirmar el pago.
 
 ## Stack
 
@@ -38,10 +39,10 @@ npm run db:reset   # borra la base (solo dev)
 
 El seed crea dos cuentas demo:
 
-| Rol              | Email                    | Password      |
-| ---------------- | ------------------------ | ------------- |
-| Admin            | `admin@mayorista.test`   | `admin1234`   |
-| Cliente aprobado | `cliente@mayorista.test` | `cliente1234` |
+| Rol          | Email                  | Password      |
+| ------------ | ---------------------- | ------------- |
+| Admin        | `admin@impreso.test`   | `admin1234`   |
+| Cliente demo | `cliente@impreso.test` | `cliente1234` |
 
 Podés cambiarlas con `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` (ver
 `.env.example`). **En producción cambiá las credenciales del admin en el primer
@@ -92,7 +93,7 @@ Configuración (una vez):
    ```
    TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
    TELEGRAM_CHAT_ID=123456789
-   APP_URL=https://despensa.com.ar
+   APP_URL=https://impresoonline.com.ar
    ```
 
 5. Probá con un mensaje de verificación:
@@ -121,7 +122,7 @@ sudo usermod -aG docker $USER   # volver a entrar con la sesión
 ### 2. Subir el proyecto y configurar
 
 ```bash
-git clone <URL-del-repo> despensa-online && cd despensa-online
+git clone <URL-del-repo> impreso-online && cd impreso-online
 cp .env.example .env
 # Editar .env: SEED_ADMIN_PASSWORD con una password fuerte
 # (se usa SOLO si la base está vacía; cambiala luego igualmente)
@@ -161,7 +162,7 @@ directamente: la base ya tiene el catálogo y las cuentas demo.
 Instalá Nginx y certbot, y usá una configuración como esta:
 
 ```nginx
-# /etc/nginx/sites-available/despensa-online
+# /etc/nginx/sites-available/impreso-online
 server {
   listen 80;
   server_name tu-dominio.com.ar;
@@ -192,7 +193,7 @@ server {
 
 ```bash
 sudo apt install nginx certbot python3-certbot-nginx
-sudo ln -s /etc/nginx/sites-available/despensa-online /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/impreso-online /etc/nginx/sites-enabled/
 sudo certbot --nginx -d tu-dominio.com.ar
 ```
 
