@@ -7,6 +7,8 @@ import { Page } from "~/components/ui/page";
 import { TextLink } from "~/components/ui/text-link";
 import { listCategoriesWithActiveCounts } from "~/db/repos/categories.server";
 import { listProducts } from "~/db/repos/products.server";
+import { getCurrentUser } from "~/lib/auth.server";
+import { listFavoriteProductIds } from "~/db/repos/favorites.server";
 import { toCatalogItem } from "~/lib/catalog.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -14,16 +16,26 @@ export async function loader({ request }: Route.LoaderArgs) {
   const q = url.searchParams.get("q") ?? "";
   const categoria = url.searchParams.get("categoria") ?? "";
 
-  const [categories, products] = await Promise.all([
+  const user = await getCurrentUser(request);
+  const [categories, products, favoriteIds] = await Promise.all([
     listCategoriesWithActiveCounts(),
     listProducts({
       activeOnly: true,
       categorySlug: categoria || undefined,
       search: q || undefined,
     }),
+    user ? listFavoriteProductIds(user.id) : Promise.resolve([]),
   ]);
 
-  return { items: products.map(toCatalogItem), categories, q, categoria };
+  const favorites = new Set(favoriteIds);
+  return {
+    items: products.map(toCatalogItem),
+    categories,
+    q,
+    categoria,
+    loggedIn: user !== null,
+    favorites,
+  };
 }
 
 export function meta({}: Route.MetaArgs) {
@@ -39,7 +51,7 @@ function href(categoria: string, q: string): string {
 }
 
 export default function Catalog({ loaderData }: Route.ComponentProps) {
-  const { items, categories, q, categoria } = loaderData;
+  const { items, categories, q, categoria, loggedIn, favorites } = loaderData;
   const total = categories.reduce((sum, category) => sum + category.product_count, 0);
 
   const chipClass = (active: boolean) =>
@@ -96,7 +108,12 @@ export default function Catalog({ loaderData }: Route.ComponentProps) {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
-            <ProductCard key={item.slug} item={item} />
+            <ProductCard
+              key={item.slug}
+              item={item}
+              loggedIn={loggedIn}
+              favorited={favorites.has(item.id)}
+            />
           ))}
         </div>
       )}

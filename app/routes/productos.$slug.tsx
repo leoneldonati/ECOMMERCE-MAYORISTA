@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Route } from "./+types/productos.$slug";
 
 import { CsrfToken } from "~/components/csrf-token";
+import { FavoriteToggle } from "~/components/favorite-toggle";
 import { FetcherSubmitButton } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { Card } from "~/components/ui/card";
@@ -11,6 +12,7 @@ import { findProductBySlug } from "~/db/repos/products.server";
 import { getCurrentUser } from "~/lib/auth.server";
 import { availabilityLabel } from "~/lib/availability";
 import { toCatalogDetail } from "~/lib/catalog.server";
+import { isFavorite } from "~/db/repos/favorites.server";
 import { formatARS } from "~/lib/money";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
@@ -18,7 +20,11 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   if (!product || !product.active) throw data(null, { status: 404 });
 
   const user = await getCurrentUser(request);
-  return { product: toCatalogDetail(product), loggedIn: user !== null };
+  return {
+    product: toCatalogDetail(product),
+    loggedIn: user !== null,
+    favorited: user !== null ? isFavorite(user.id, product.id) : false,
+  };
 }
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -30,7 +36,7 @@ export function meta({ loaderData }: Route.MetaArgs) {
 }
 
 export default function ProductDetail({ loaderData }: Route.ComponentProps) {
-  const { product, loggedIn } = loaderData;
+  const { product, loggedIn, favorited } = loaderData;
   const [quantity, setQuantity] = useState(1);
   const fetcher = useFetcher();
 
@@ -81,7 +87,10 @@ export default function ProductDetail({ loaderData }: Route.ComponentProps) {
         ) : null}
 
         <div>
-          <h1 className="text-2xl font-bold">{product.name}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">{product.name}</h1>
+            <FavoriteToggle productId={product.id} favorited={favorited} loggedIn={loggedIn} />
+          </div>
           <Badge tone={stockTone} className="mt-2">
             {availabilityLabel(product.availability, product.lead_time_days)}
           </Badge>

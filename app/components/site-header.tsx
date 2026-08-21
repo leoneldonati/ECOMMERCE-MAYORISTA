@@ -1,6 +1,6 @@
 import { Form, Link, NavLink, useLocation } from "react-router";
 import { useEffect, useState } from "react";
-import { Box, Menu, ShoppingCart, X } from "lucide-react";
+import { Box, Heart, Menu, ShoppingCart, X } from "lucide-react";
 import type { PublicUser } from "~/db/types";
 import { CsrfToken } from "./csrf-token";
 import { Badge } from "./ui/badge";
@@ -23,7 +23,15 @@ function Logo() {
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `transition-colors ${isActive ? "font-medium text-brand-700" : "text-stone-600 hover:text-stone-900"}`;
 
-export function SiteHeader({ user, cartCount }: { user: PublicUser | null; cartCount: number }) {
+export function SiteHeader({
+  user,
+  cartCount,
+  favoriteCount,
+}: {
+  user: PublicUser | null;
+  cartCount: number;
+  favoriteCount: number;
+}) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   // Cerrar el menú después de navegar.
@@ -40,6 +48,11 @@ export function SiteHeader({ user, cartCount }: { user: PublicUser | null; cartC
       {canBuy ? (
         <NavLink to="/carrito" className={navLinkClass}>
           Carrito{cartCount > 0 ? ` (${cartCount})` : ""}
+        </NavLink>
+      ) : null}
+      {canBuy ? (
+        <NavLink to="/favoritos" className={navLinkClass}>
+          Favoritos{favoriteCount > 0 ? ` (${favoriteCount})` : ""}
         </NavLink>
       ) : null}
       {loggedIn ? (
@@ -85,6 +98,20 @@ export function SiteHeader({ user, cartCount }: { user: PublicUser | null; cartC
         </nav>
 
         <div className="flex items-center gap-1 md:hidden">
+          {canBuy ? (
+            <Link
+              to="/favoritos"
+              aria-label={`Favoritos, ${favoriteCount} producto${favoriteCount === 1 ? "" : "s"}`}
+              className="relative rounded-md p-1.5 text-stone-700 hover:bg-stone-100"
+            >
+              <Heart className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
+              {favoriteCount > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 rounded-full bg-brand-700 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                  {favoriteCount}
+                </span>
+              ) : null}
+            </Link>
+          ) : null}
           {canBuy ? (
             <Link
               to="/carrito"

@@ -17,6 +17,7 @@ import { SiteFooter } from "./components/site-footer";
 import { ButtonLink } from "./components/ui/button";
 import { ToastProvider, useToast } from "./components/ui/toast";
 import { countCartItems } from "./db/repos/cart.server";
+import { countFavorites } from "./db/repos/favorites.server";
 import type { PublicUser } from "./db/types";
 import { getCurrentUser } from "./lib/auth.server";
 import { commitCsrfCookie, getCsrfToken } from "./lib/csrf.server";
@@ -53,16 +54,17 @@ export async function loader({ request }: Route.LoaderArgs) {
     getCsrfToken(request),
     readFlash(request),
   ]);
-  // El contador del mini-carrito va solo para quien puede comprar (aprobados/admin).
-  const canBuy = user !== null && (user.role === "admin" || user.status === "approved");
+  // El contador del mini-carrito y de favoritos va para cualquier usuario logueado (B2C).
+  const canBuy = user !== null;
   const cartCount = canBuy ? countCartItems(user.id) : 0;
+  const favoriteCount = canBuy ? countFavorites(user.id) : 0;
 
   const headers = new Headers();
   headers.append("Set-Cookie", await commitCsrfCookie(request));
   // Si había flash, se lee y se borra en el mismo request para mostrarlo una sola vez.
   if (flash) headers.append("Set-Cookie", await clearFlash());
 
-  return data({ user, csrf, cartCount, flash }, { headers });
+  return data({ user, csrf, cartCount, favoriteCount, flash }, { headers });
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -71,7 +73,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#b45309" />
+        <meta name="theme-color" content="#6d28d9" />
         <Meta />
         <Links />
       </head>
@@ -86,7 +88,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 function AppContent() {
   const rootData = useRouteLoaderData("root") as
-    { user: PublicUser | null; cartCount: number; flash?: string | undefined } | undefined;
+    | {
+        user: PublicUser | null;
+        cartCount: number;
+        favoriteCount: number;
+        flash?: string | undefined;
+      }
+    | undefined;
   const { toast } = useToast();
 
   useEffect(() => {
@@ -101,7 +109,11 @@ function AppContent() {
       >
         Saltar al contenido
       </a>
-      <SiteHeader user={rootData?.user ?? null} cartCount={rootData?.cartCount ?? 0} />
+      <SiteHeader
+        user={rootData?.user ?? null}
+        cartCount={rootData?.cartCount ?? 0}
+        favoriteCount={rootData?.favoriteCount ?? 0}
+      />
       <main id="contenido" tabIndex={-1} className="flex-1 focus:outline-none">
         <Outlet />
       </main>

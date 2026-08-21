@@ -2,10 +2,19 @@ import { Link } from "react-router";
 import type { CatalogItem } from "~/lib/catalog.server";
 import { availabilityLabel } from "~/lib/availability";
 import { formatARS } from "~/lib/money";
+import { FavoriteToggle } from "./favorite-toggle";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
 
-export function ProductCard({ item }: { item: CatalogItem }) {
+export function ProductCard({
+  item,
+  favorited = false,
+  loggedIn = false,
+}: {
+  item: CatalogItem;
+  favorited?: boolean;
+  loggedIn?: boolean;
+}) {
   const stockClass =
     item.availability === "in_stock"
       ? "success"
@@ -14,7 +23,13 @@ export function ProductCard({ item }: { item: CatalogItem }) {
         : "warning";
 
   return (
-    <Card as="article" className="flex flex-col p-4 transition-shadow hover:shadow-sm">
+    <Card as="article" className="relative flex flex-col p-4 transition-shadow hover:shadow-sm">
+      <FavoriteToggle
+        productId={item.id}
+        favorited={favorited}
+        loggedIn={loggedIn}
+        className="absolute right-2 top-2"
+      />
       <Link to={`/productos/${item.slug}`} className="block">
         {item.image_url ? (
           <img

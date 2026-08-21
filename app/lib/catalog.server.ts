@@ -10,6 +10,7 @@ export function availabilityOf(product: Pick<Product, "made_to_order" | "stock">
 }
 
 export interface CatalogItem {
+  id: number;
   slug: string;
   name: string;
   description: string | null;
@@ -23,12 +24,12 @@ export interface CatalogItem {
 }
 
 export interface CatalogDetail extends CatalogItem {
-  id: number;
   made_to_order: number;
 }
 
 export function toCatalogItem(product: Product): CatalogItem {
   return {
+    id: product.id,
     slug: product.slug,
     name: product.name,
     description: product.description,

@@ -108,6 +108,18 @@ Semántica de disponibilidad:
 El carrito es **server-side** (fuente de verdad); los precios/stock se revalidan al
 crear la orden, no al agregar.
 
+## `favorites` (lista de deseos)
+
+| Columna    | Tipo                            | Notas |
+| ---------- | ------------------------------- | ----- |
+| id         | INTEGER PK                      |       |
+| user_id    | INTEGER FK → users (CASCADE)    |       |
+| product_id | INTEGER FK → products (CASCADE) |       |
+| created_at | TEXT                            |       |
+
+`UNIQUE (user_id, product_id)`: un producto solo puede estar una vez en los favoritos.
+Los favoritos se listan por `created_at DESC` (los más recientes primero).
+
 ## `_migrations`
 
 | Columna    | Tipo    |
@@ -126,3 +138,4 @@ las ejecuta en orden dentro de transacciones.
 - `orders`: user_id, status
 - `order_items`: order_id
 - `cart_items`: user_id
+- `favorites`: user_id

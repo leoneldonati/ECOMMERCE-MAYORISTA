@@ -44,6 +44,9 @@
 - El detalle (`/productos/:slug`) muestra imagen, precio y disponibilidad; para
   agregar al carrito hace falta sesión (registro abierto). Producto inexistente
   o inactivo → 404.
+- **Favoritos** (`/favoritos`): los usuarios logueados pueden marcar productos
+  con el corazón (en catálogo y detalle) y consultarlos en una lista propia.
+  El toggle es optimista y revalida el loader actual más el contador del header.
 
 ## Ciclo de vida del pedido
 

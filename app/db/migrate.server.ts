@@ -4,6 +4,7 @@ import { migration as initial } from "./migrations/001_initial";
 import { migration as cart } from "./migrations/002_cart";
 import { migration as paymentNotification } from "./migrations/003_payment_notification";
 import { migration as reconversion3d } from "./migrations/004_3d";
+import { migration as favorites } from "./migrations/005_favorites";
 
 // Cada migración aporta un id estable, una descripción y el SQL a aplicar.
 // Se aplican en orden de aparición y se registran en la tabla `_migrations`.
@@ -14,7 +15,7 @@ export interface Migration {
   up: string;
 }
 
-const migrations: Migration[] = [initial, cart, paymentNotification, reconversion3d];
+const migrations: Migration[] = [initial, cart, paymentNotification, reconversion3d, favorites];
 
 /**
  * Aplica las migraciones pendientes en orden, cada una dentro de
