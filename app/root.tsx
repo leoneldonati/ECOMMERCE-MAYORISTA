@@ -24,7 +24,8 @@ import { commitCsrfCookie, getCsrfToken } from "./lib/csrf.server";
 import { clearFlash, readFlash } from "./lib/flash.server";
 
 export const links: Route.LinksFunction = () => [
-  { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+  { rel: "icon", href: "/favicon.png", type: "image/png" },
+  { rel: "apple-touch-icon", href: "/favicon.png" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
@@ -73,7 +74,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#6d28d9" />
+        <meta name="theme-color" content="#1059C6" />
         <Meta />
         <Links />
       </head>

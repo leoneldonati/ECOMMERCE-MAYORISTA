@@ -1,24 +1,13 @@
 import { Form, Link, NavLink, useLocation } from "react-router";
 import { useEffect, useState } from "react";
-import { Box, Heart, Menu, ShoppingCart, X } from "lucide-react";
+import { Heart, Menu, ShoppingCart, X } from "lucide-react";
 import type { PublicUser } from "~/db/types";
 import { CsrfToken } from "./csrf-token";
 import { Badge } from "./ui/badge";
 import { Button, ButtonLink } from "./ui/button";
 
-// Identidad del header: marca con glifo de cubo 3D (mismo trazo que el
-// favicon), NavLink con aria-current automático y menú colapsable en mobile.
-
-function Logo() {
-  return (
-    <span className="flex items-center gap-2">
-      <Box className="h-6 w-6 text-brand-700" strokeWidth={1.8} aria-hidden="true" />
-      <span className="text-lg font-bold tracking-tight">
-        Impreso<span className="text-brand-700">Online</span>
-      </span>
-    </span>
-  );
-}
+// Identidad del header: logo (isotipo+wordmark) enlazado a la home, NavLink con
+// aria-current automático y menú colapsable en mobile.
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `transition-colors ${isActive ? "font-medium text-brand-700" : "text-stone-600 hover:text-stone-900"}`;
@@ -89,8 +78,8 @@ export function SiteHeader({
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200 bg-white">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
-        <Link to="/" className="shrink-0">
-          <Logo />
+        <Link to="/" className="shrink-0" aria-label="Impreso Online, ir al inicio">
+          <img src="/logo.png" alt="Impreso Online" className="h-10 w-auto" />
         </Link>
 
         <nav aria-label="Principal" className="hidden items-center gap-4 text-sm md:flex">
